@@ -1,9 +1,9 @@
 package ru.practicum.statsserver.controllers;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.statsdto.HitDto;
@@ -27,8 +27,8 @@ public class StatsController {
     }
 
     @GetMapping("/stats")
-    public List<StatsDto> getStats(@RequestParam @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
-                             @RequestParam @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
+    public List<StatsDto> getStats(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
+                             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
                              @RequestParam(required = false) String[] uris,
                              @RequestParam(required = false) Boolean unique) {
         return service.getStats(start, end, uris, unique);
