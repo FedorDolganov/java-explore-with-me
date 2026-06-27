@@ -1,0 +1,269 @@
+{
+  "info": {
+    "_postman_id": "7da06fe4-de24-4b11-ba1c-f2a7a55bba60",
+    "name": "ExploreWithMe",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52841389",
+    "_collection_link": "https://go.postman.co/collection/52841389-7da06fe4-de24-4b11-ba1c-f2a7a55bba60?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Stats",
+      "item": [
+        {
+          "name": "Добавление записи статистики",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let serverResponse = pm.response;\r",
+                  "\r",
+                  "pm.test(\"Ответ должен содержать код статуса 200\", function() {\r",
+                  "    pm.response.to.be.ok;\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"app\": \"ewm-main-service\",\r\n  \"uri\": \"/events/1\",\r\n  \"ip\": \"192.163.0.1\",\r\n  \"timestamp\": \"2000-01-01T12:00:00\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/hit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "hit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получение данных статистики только по дате",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let serverResponse = pm.response;\r",
+                  "\r",
+                  "const body = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Ответ должен содержать код статуса 200 и иметь тело\", function() {\r",
+                  "    pm.response.to.be.ok;\r",
+                  "    pm.response.to.be.withBody;\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Ответ должен быть списком\", function() {\r",
+                  "    pm.expect(body).is.an('array');\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Ответ должен быть больше чем 1 объект\", function() {\r",
+                  "    pm.expect(body.length).to.be.at.least(1);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stats?start=2000-01-01T10:00:00&end=2000-01-01T14:00:00",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "start",
+                  "value": "2000-01-01T10:00:00"
+                },
+                {
+                  "key": "end",
+                  "value": "2000-01-01T14:00:00"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получение уникальных данных статистики",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let serverResponse = pm.response;\r",
+                  "\r",
+                  "const body = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Ответ должен содержать код статуса 200 и иметь тело\", function() {\r",
+                  "    pm.response.to.be.ok;\r",
+                  "    pm.response.to.be.withBody;\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Ответ должен быть списком\", function() {\r",
+                  "    pm.expect(body).is.an('array');\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Ответ должен быть больше чем 1 объект\", function() {\r",
+                  "    pm.expect(body.length).to.be.at.least(1);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stats?start=2000-01-01T10:00:00&end=2000-01-01T14:00:00&unique=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "start",
+                  "value": "2000-01-01T10:00:00"
+                },
+                {
+                  "key": "end",
+                  "value": "2000-01-01T14:00:00"
+                },
+                {
+                  "key": "unique",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получение данных статистики по конкретным uri",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let serverResponse = pm.response;\r",
+                  "\r",
+                  "const body = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Ответ должен содержать код статуса 200 и иметь тело\", function() {\r",
+                  "    pm.response.to.be.ok;\r",
+                  "    pm.response.to.be.withBody;\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Ответ должен быть списком\", function() {\r",
+                  "    pm.expect(body).is.an('array');\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Ответ должен быть больше чем 1 объект\", function() {\r",
+                  "    pm.expect(body.length).to.be.at.least(1);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stats?start=2000-01-01T10:00:00&end=2000-01-01T14:00:00&uris=ewm-main-service&uris=test2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "start",
+                  "value": "2000-01-01T10:00:00"
+                },
+                {
+                  "key": "end",
+                  "value": "2000-01-01T14:00:00"
+                },
+                {
+                  "key": "uris",
+                  "value": "ewm-main-service"
+                },
+                {
+                  "key": "uris",
+                  "value": "test2"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": ""
+    }
+  ]
+}
