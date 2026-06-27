@@ -31,11 +31,11 @@ services:
       interval: 5s
       retries: 10
 
-  main-server:
+  ewm-service:
     build:
-      context: main-server
+      context: ewm-service
       dockerfile: Dockerfile
-    container_name: main-server
+    container_name: ewm-service
     ports:
       - "8080:8080"
     depends_on:
@@ -46,9 +46,9 @@ services:
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=pa55w0rd
 
-  main-db:
+  ewm_main:
     image: postgres:16.1
-    container_name: main-db
+    container_name: ewm_main
     ports:
       - "5434:5432"
     environment:
@@ -65,4 +65,4 @@ services:
 
 volumes:
   stats-db-data:
-  main-db-data:
+  ewm-main-data:
