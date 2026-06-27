@@ -34,7 +34,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"app\": \"ewm-main-service\",\r\n  \"uri\": \"/events/1\",\r\n  \"ip\": \"192.163.0.1\",\r\n  \"timestamp\": \"2000-01-01T12:00:00\"\r\n}",
+              "raw": "{\r\n  \"app\": \"ewm-main-service\",\r\n  \"uri\": \"/events/1\",\r\n  \"ip\": \"192.163.0.1\",\r\n  \"timestamp\": \"2000-01-01 12:00:00\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -88,7 +88,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/stats?start=2000-01-01T10:00:00&end=2000-01-01T14:00:00",
+              "raw": "{{baseUrl}}/stats?start=2000-01-01 10:00:00&end=2000-01-01 14:00:00",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -98,11 +98,11 @@
               "query": [
                 {
                   "key": "start",
-                  "value": "2000-01-01T10:00:00"
+                  "value": "2000-01-01 10:00:00"
                 },
                 {
                   "key": "end",
-                  "value": "2000-01-01T14:00:00"
+                  "value": "2000-01-01 14:00:00"
                 }
               ]
             }
@@ -144,7 +144,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/stats?start=2000-01-01T10:00:00&end=2000-01-01T14:00:00&unique=true",
+              "raw": "{{baseUrl}}/stats?start=2000-01-01 10:00:00&end=2000-01-01 14:00:00&unique=true",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -154,11 +154,11 @@
               "query": [
                 {
                   "key": "start",
-                  "value": "2000-01-01T10:00:00"
+                  "value": "2000-01-01 10:00:00"
                 },
                 {
                   "key": "end",
-                  "value": "2000-01-01T14:00:00"
+                  "value": "2000-01-01 14:00:00"
                 },
                 {
                   "key": "unique",
@@ -204,7 +204,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/stats?start=2000-01-01T10:00:00&end=2000-01-01T14:00:00&uris=ewm-main-service&uris=test2",
+              "raw": "{{baseUrl}}/stats?start=2000-01-01 10:00:00&end=2000-01-01 14:00:00&uris=/events/1&uris=test2",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -214,15 +214,15 @@
               "query": [
                 {
                   "key": "start",
-                  "value": "2000-01-01T10:00:00"
+                  "value": "2000-01-01 10:00:00"
                 },
                 {
                   "key": "end",
-                  "value": "2000-01-01T14:00:00"
+                  "value": "2000-01-01 14:00:00"
                 },
                 {
                   "key": "uris",
-                  "value": "ewm-main-service"
+                  "value": "/events/1"
                 },
                 {
                   "key": "uris",
@@ -230,6 +230,14 @@
                 }
               ]
             }
+          },
+          "response": []
+        },
+        {
+          "name": "New Request",
+          "request": {
+            "method": "GET",
+            "header": []
           },
           "response": []
         }

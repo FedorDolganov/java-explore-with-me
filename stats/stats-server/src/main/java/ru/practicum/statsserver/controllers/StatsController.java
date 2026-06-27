@@ -1,5 +1,6 @@
 package ru.practicum.statsserver.controllers;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +27,8 @@ public class StatsController {
     }
 
     @GetMapping("/stats")
-    public List<StatsDto> getStats(@RequestParam LocalDateTime start,
-                             @RequestParam LocalDateTime end,
+    public List<StatsDto> getStats(@RequestParam @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
+                             @RequestParam @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
                              @RequestParam(required = false) String[] uris,
                              @RequestParam(required = false) Boolean unique) {
         return service.getStats(start, end, uris, unique);
