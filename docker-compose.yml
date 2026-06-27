@@ -1,14 +1,68 @@
 services:
   stats-server:
+    build:
+      context: stats/stats-server
+      dockerfile: Dockerfile
+    container_name: stats-server
     ports:
       - "9090:9090"
+    depends_on:
+      stats-db:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/ewm_stats
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=pa55w0rd
 
   stats-db:
     image: postgres:16.1
+    container_name: stats-db
+    ports:
+      - "6543:5432"
+    environment:
+      POSTGRES_DB: ewm_stats
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pa55w0rd
+    volumes:
+      - stats-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -q -d ewm_stats -U postgres
+      timeout: 5s
+      interval: 5s
+      retries: 10
 
-  ewm-service:
+  main-server:
+    build:
+      context: main-server
+      dockerfile: Dockerfile
+    container_name: main-server
     ports:
       - "8080:8080"
+    depends_on:
+      main-db:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/ewm_main
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=pa55w0rd
 
-  ewm-db:
+  main-db:
     image: postgres:16.1
+    container_name: main-db
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: ewm_main
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pa55w0rd
+    volumes:
+      - main-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -q -d ewm_main -U postgres
+      timeout: 5s
+      interval: 5s
+      retries: 10
+
+volumes:
+  stats-db-data:
+  main-db-data:
