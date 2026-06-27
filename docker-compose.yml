@@ -42,7 +42,7 @@ services:
       main-db:
         condition: service_healthy
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/ewm_main
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm_main:5432/ewm_main
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=pa55w0rd
 
