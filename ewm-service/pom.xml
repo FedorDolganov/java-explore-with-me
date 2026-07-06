@@ -67,11 +67,11 @@
                 </executions>
                 <configuration>
                     <excludes>
-                        <exclude>ru/practicum/mainserver/MainServerApp.class</exclude>
-                        <exclude>ru/practicum/mainserver/exceptions/ExceptionsHandler.class</exclude>
-                        <exclude>ru/practicum/mainserver/mappers/ApiError.class</exclude>
-                        <exclude>ru/practicum/mainserver/client/BaseClient.java</exclude>
-                        <exclude>ru/practicum/mainserver/client/ViewsClient.java</exclude>
+                        <exclude>ru/practicum/mainserver/MainServerApp.*</exclude>
+                        <exclude>ru/practicum/mainserver/exceptions/ExceptionsHandler.*</exclude>
+                        <exclude>ru/practicum/mainserver/mappers/ApiError.*</exclude>
+                        <exclude>ru/practicum/mainserver/client/BaseClient.*</exclude>
+                        <exclude>ru/practicum/mainserver/client/ViewsClient.*</exclude>
                     </excludes>
                 </configuration>
             </plugin>
