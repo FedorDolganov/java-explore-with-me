@@ -1,6 +1,5 @@
 package ru.practicum.mainserver.events.repositories;
 
-import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.practicum.mainserver.events.Event;

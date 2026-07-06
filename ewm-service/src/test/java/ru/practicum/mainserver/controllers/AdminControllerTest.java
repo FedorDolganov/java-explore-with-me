@@ -20,7 +20,6 @@ import ru.practicum.mainserver.events.EventStateAction;
 import ru.practicum.mainserver.events.dto.EventFullDto;
 import ru.practicum.mainserver.events.dto.Location;
 import ru.practicum.mainserver.events.dto.UpdateEventAdminRequest;
-import ru.practicum.mainserver.json.UpdateEventAdminRequestTest;
 import ru.practicum.mainserver.users.dto.NewUserRequest;
 import ru.practicum.mainserver.users.dto.UserDto;
 import ru.practicum.mainserver.users.dto.UserShortDto;

@@ -2,7 +2,6 @@ package ru.practicum.mainserver.mappers;
 
 import lombok.experimental.UtilityClass;
 import ru.practicum.mainserver.users.ParticipationRequest;
-import ru.practicum.mainserver.users.PendingRequestStatus;
 import ru.practicum.mainserver.users.User;
 import ru.practicum.mainserver.users.dto.NewUserRequest;
 import ru.practicum.mainserver.users.dto.ParticipationRequestDto;

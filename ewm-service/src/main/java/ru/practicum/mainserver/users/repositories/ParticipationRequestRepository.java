@@ -4,7 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.practicum.mainserver.users.ParticipationRequest;
 import ru.practicum.mainserver.users.PendingRequestStatus;
-import ru.practicum.mainserver.users.dto.ParticipationRequestDto;
 
 import java.util.List;
 import java.util.Map;
