@@ -242,7 +242,7 @@ public class UserServiceImpl implements UserService {
         List<ParticipationRequest> confirmedRequests = new ArrayList<>();
 
         if (eventRequest.getStatus() == UpdateEventRequestStatus.CONFIRMED) {
-            for (int i = 0 ; i < Math.min(freeRequests, requests.size()) ; i++) {
+            for (int i = 0; i < Math.min(freeRequests, requests.size()); i++) {
                 confirmedRequests.add(requests.get(i));
 
                 cancelledRequests.remove(i);
