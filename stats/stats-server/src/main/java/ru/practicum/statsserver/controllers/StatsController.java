@@ -2,7 +2,6 @@ package ru.practicum.statsserver.controllers;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +14,6 @@ import java.util.List;
 
 @RestController
 @AllArgsConstructor
-@Slf4j
 public class StatsController {
 
     private StatsServiceImpl service;
