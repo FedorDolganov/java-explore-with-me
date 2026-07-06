@@ -19,7 +19,7 @@ public class EventFullDto {
     private String title;
     private String annotation;
     private String description;
-    private int confirmedRequests;
+    private long confirmedRequests;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdOn;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

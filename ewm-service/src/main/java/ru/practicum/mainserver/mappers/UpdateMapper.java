@@ -8,12 +8,17 @@ import java.lang.reflect.Field;
 public class UpdateMapper {
 
     public static  <T> void mergeObjects(T source, T target) {
-        for (Field field : source.getClass().getDeclaredFields()) {
+        for (Field field : target.getClass().getDeclaredFields()) {
             field.setAccessible(true);
+
+            if (field.getName().equals("id")) {
+                continue;
+            }
+
             try {
-                Object value = field.get(source);
+                Object value = field.get(target);
                 if (value != null) {
-                    field.set(target, value);
+                    field.set(source, value);
                 }
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);

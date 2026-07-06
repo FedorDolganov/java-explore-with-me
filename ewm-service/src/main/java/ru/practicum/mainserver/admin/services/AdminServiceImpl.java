@@ -2,7 +2,9 @@ package ru.practicum.mainserver.admin.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import ru.practicum.mainserver.categories.Category;
 import ru.practicum.mainserver.categories.dto.CategoryDto;
 import ru.practicum.mainserver.categories.dto.NewCategoryDto;
@@ -19,6 +21,7 @@ import ru.practicum.mainserver.events.EventStateAction;
 import ru.practicum.mainserver.events.dto.EventFullDto;
 import ru.practicum.mainserver.events.dto.UpdateEventAdminRequest;
 import ru.practicum.mainserver.events.repositories.EventRepository;
+import ru.practicum.mainserver.exceptions.BadRequestException;
 import ru.practicum.mainserver.exceptions.ConflictException;
 import ru.practicum.mainserver.exceptions.NotFoundException;
 import ru.practicum.mainserver.mappers.*;
@@ -64,6 +67,10 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public void deleteCategory(long catId) {
+        if (!eventRepository.findAllByCatId(catId).isEmpty()) {
+            throw new ConflictException("Category already has linked events");
+        }
+
         categoryRepository.deleteById(catId);
     }
 
@@ -87,13 +94,12 @@ public class AdminServiceImpl implements AdminService {
         List<Long> ids = events.stream().map(Event::getId).toList();
 
         Map<Long, Integer> viewsCount = viewsClient.getViewsByList(ids);
-
-        Map<Long, Integer> requestsCount = requestRepository.getApprovedRequestsCount(ids);
+        Map<Long, Long> requestsCount = requestRepository.getApprovedRequestsCount(ids);
 
         return events.stream()
                 .map(event ->  EventMapper.toFullDto(
                         event,
-                        requestsCount.getOrDefault(event.getId(), 0),
+                        requestsCount.getOrDefault(event.getId(), 0L),
                         viewsCount.getOrDefault(event.getId(), 0)
                 ))
                 .toList();
@@ -107,11 +113,19 @@ public class AdminServiceImpl implements AdminService {
             throw new NotFoundException(String.format("Event with id=%s was not found.", event));
         }
 
+        Optional<Category> category = categoryRepository.findById(eventAdminRequest.getCategory());
+
+        if (eventAdminRequest.getCategory() != 0 && category.isEmpty()) {
+            throw new NotFoundException(String.format("Event with id=%s was not found.", event));
+        }
+
         if (eventAdminRequest.getEventDate() != null) {
             if (eventAdminRequest.getEventDate().isBefore(event.get().getCreatedOn().plusHours(1))) {
-                throw new ConflictException("The start date of the event being modified must be no earlier than one hour from the publication date.");
+                throw new BadRequestException("The start date of the event being modified must be no earlier than one hour from the publication date.");
             }
         }
+
+        UpdateMapper.mergeObjects(event.get(), EventMapper.toEvent(eventAdminRequest, category.orElse(null)));
 
         if (eventAdminRequest.getStateAction() == EventStateAction.PUBLISH_EVENT) {
             if (event.get().getState() != EventState.PENDING) {
@@ -175,6 +189,8 @@ public class AdminServiceImpl implements AdminService {
         if (compilation.isEmpty()) {
             throw new NotFoundException(String.format("Compilation with id=%s was not found", compId));
         }
+
+        compilation.get().getEvents().addAll(eventRepository.findAllById(compilationRequest.getEvents()));
 
         UpdateMapper.mergeObjects(compilation.get(), CompilationMapper.to(compilationRequest, compId, compilation.get().getEvents()));
 

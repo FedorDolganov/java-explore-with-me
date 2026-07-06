@@ -7,6 +7,7 @@ import ru.practicum.mainserver.events.EventState;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
 
@@ -47,4 +48,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "from Event e " +
             "where e.id in ?1")
     List<Event> findByIds(List<Long> events);
+
+    @Query("select e " +
+            "from Event e " +
+            "where e.category.id = ?1")
+    List<Event> findAllByCatId(long catId);
+
 }

@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
 
         List<Long> eventIds = events.stream().map(Event::getId).toList();
 
-        Map<Long, Integer> requestsCount = requestRepository.getApprovedRequestsCount(eventIds);
+        Map<Long, Long> requestsCount = requestRepository.getApprovedRequestsCount(eventIds);
 
         Map<Long, Integer> viewsCount = viewsClient.getViewsByList(eventIds);
 
@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
                 .map(event ->
                         EventMapper.toShortDto(
                                     event,
-                                    requestsCount.getOrDefault(event.getId(), 0),
+                                    requestsCount.getOrDefault(event.getId(), 0L),
                                     viewsCount.getOrDefault(event.getId(), 0)
                                 )
                 )
@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public EventFullDto createEvent(long userId, NewEventDto eventDto) {
         if (eventDto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new ForbiddenException(String.format("Field: eventDate. Error: должно содержать дату, которая еще не наступила. Value: %s", eventDto.getEventDate()));
+            throw new BadRequestException(String.format("Field: eventDate. Error: должно содержать дату, которая еще не наступила. Value: %s", eventDto.getEventDate()));
         }
 
         Optional<Category> category = categoryRepository.findById(eventDto.getCategory());
@@ -132,10 +132,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public EventFullDto updateUserEvent(long userId, long eventId, UpdateEventUserRequest eventUserRequest) {
-        if (eventUserRequest.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new ForbiddenException(String.format("Field: eventDate. Error: должно содержать дату, которая еще не наступила. Value: %s", eventUserRequest.getEventDate()));
-        }
-
         Optional<Event> event = eventRepository.findById(eventId);
 
         if (event.isEmpty()) {
@@ -143,7 +139,13 @@ public class UserServiceImpl implements UserService {
         }
 
         if (!EventState.isCanceledOrPending(event.get().getState())) {
-            throw new ForbiddenException("Only pending or canceled events can be changed");
+            throw new ConflictException("Only pending or canceled events can be changed");
+        }
+
+        if (eventUserRequest.getEventDate() != null) {
+            if (eventUserRequest.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
+                throw new BadRequestException(String.format("Field: eventDate. Error: должно содержать дату, которая еще не наступила. Value: %s", eventUserRequest.getEventDate()));
+            }
         }
 
         Optional<User> user = userRepository.findById(userId);
@@ -154,13 +156,13 @@ public class UserServiceImpl implements UserService {
 
         Optional<Category> category = categoryRepository.findById(eventUserRequest.getCategory());
 
-        if (category.isEmpty()) {
+        if (eventUserRequest.getCategory() != 0 && category.isEmpty()) {
             throw new NotFoundException(String.format("Category with id=%s not found.", eventUserRequest.getCategory()));
         }
 
         UpdateMapper.mergeObjects(event.get(), EventMapper.toEvent(
                 eventUserRequest,
-                category.get(),
+                category.orElse(event.get().getCategory()),
                 user.get()
         ));
 
@@ -210,7 +212,7 @@ public class UserServiceImpl implements UserService {
             throw new ForbiddenException("Event must be published.");
         }
 
-        if (!event.get().isRequestModeration() || event.get().getParticipantLimit() == 0) {
+        if (!event.get().getRequestModeration() || event.get().getParticipantLimit() == 0) {
             throw new ConflictException("Request moderation is disabled or participant limit is 0. Requests are automatically confirmed.");
         }
 
@@ -231,11 +233,18 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        int freeRequests = event.get().getParticipantLimit() - requestRepository.countAllByEventIdAndStatus(eventId, PendingRequestStatus.CONFIRMED);
+        int freeRequests;
 
-        if (freeRequests <= 0) {
-            throw new ConflictException("The participant limit has been reached.");
+        if (event.get().getParticipantLimit() == 0) {
+             freeRequests = requests.size();
+        } else {
+            freeRequests = event.get().getParticipantLimit() - requestRepository.countAllByEventIdAndStatus(eventId, PendingRequestStatus.CONFIRMED);
+
+            if (freeRequests <= 0) {
+                throw new ConflictException("The participant limit has been reached.");
+            }
         }
+
 
         List<ParticipationRequest> cancelledRequests = new ArrayList<>(requests);
 
@@ -256,7 +265,7 @@ public class UserServiceImpl implements UserService {
                             .map(UserMapper::toPRDto)
                             .toList(),
                 requestRepository.saveAll(cancelledRequests.stream()
-                        .peek(request -> request.setStatus(PendingRequestStatus.CANCELED))
+                        .peek(request -> request.setStatus(PendingRequestStatus.REJECTED))
                         .toList()).stream()
                             .map(UserMapper::toPRDto)
                             .toList()
@@ -302,7 +311,7 @@ public class UserServiceImpl implements UserService {
             throw new ConflictException("You cannot participate in an unpublished event.");
         }
 
-        if (event.get().getParticipantLimit() - requestRepository.countAllByEventIdAndStatus(eventId, PendingRequestStatus.CONFIRMED) <= 0) {
+        if (event.get().getParticipantLimit() != 0 && event.get().getParticipantLimit() - requestRepository.countAllByEventIdAndStatus(eventId, PendingRequestStatus.CONFIRMED) <= 0) {
             throw new ConflictException("The participant limit has been reached.");
         }
 
@@ -314,7 +323,7 @@ public class UserServiceImpl implements UserService {
                 LocalDateTime.now()
         );
 
-        if (!event.get().isRequestModeration() || event.get().getParticipantLimit() == 0) {
+        if (!event.get().getRequestModeration() || event.get().getParticipantLimit() == 0) {
             request.setStatus(PendingRequestStatus.CONFIRMED);
         }
 
@@ -335,7 +344,7 @@ public class UserServiceImpl implements UserService {
             throw new NotFoundException(String.format("ParticipationRequest with id=%s not found.", requestId));
         }
 
-        request.get().setStatus(PendingRequestStatus.REJECTED);
+        request.get().setStatus(PendingRequestStatus.CANCELED);
 
         return UserMapper.toPRDto(requestRepository.save(request.get()));
     }

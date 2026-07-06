@@ -11,14 +11,14 @@ public interface StatsRepository extends JpaRepository<Hit, Long> {
 
     @Query("select h " +
             "from Hit h " +
-            "where h.timestamp > ?1 " +
-            "and h.timestamp < ?2")
+            "where h.timestamp >= ?1 " +
+            "and h.timestamp <= ?2")
     List<Hit> findListByTime(LocalDateTime start, LocalDateTime end);
 
     @Query("select h " +
             "from Hit h " +
-            "where h.timestamp > ?1 " +
-            "and h.timestamp < ?2 " +
+            "where h.timestamp >= ?1 " +
+            "and h.timestamp <= ?2 " +
             "and h.uri in ?3")
     List<Hit> findListByTimeAndListUris(LocalDateTime start, LocalDateTime end, String[] uris);
 

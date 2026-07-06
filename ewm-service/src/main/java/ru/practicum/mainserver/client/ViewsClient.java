@@ -25,7 +25,7 @@ public class ViewsClient extends BaseClient {
 
     private final ObjectMapper objectMapper;
 
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
     @Autowired
@@ -48,7 +48,7 @@ public class ViewsClient extends BaseClient {
             uris = uri + "&uris=" + uri;
         }
 
-        ResponseEntity<Object> response = get(String.format("/stats?start=%s&end=%s" + uris, formatter.format(LocalDateTime.MIN), formatter.format(LocalDateTime.now())));
+        ResponseEntity<Object> response = get(String.format("/stats?start=%s&unique=true&end=%s" + uris, formatter.format(LocalDateTime.MIN), formatter.format(LocalDateTime.now())));
 
         Map<Long, Integer> views = new HashMap<>();
 
@@ -67,7 +67,7 @@ public class ViewsClient extends BaseClient {
     }
 
     public int getViews(long id) {
-        ResponseEntity<Object> response = get("/stats?unique=true&uris=/events/" + id);
+        ResponseEntity<Object> response = get(String.format("/stats?start=%s&end=%s&unique=true&uris=/events/%s", formatter.format(LocalDateTime.now().minusYears(1000)), formatter.format(LocalDateTime.now()), id));
 
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
             JavaType type = objectMapper.getTypeFactory()
@@ -75,7 +75,11 @@ public class ViewsClient extends BaseClient {
 
             List<StatsDto> body = objectMapper.convertValue(response.getBody(), type);
 
-            return body.getFirst().getHits();
+            if (body.isEmpty()) {
+                return 0;
+            } else {
+                return body.getFirst().getHits();
+            }
         }
 
         return 0;
@@ -92,10 +96,15 @@ public class ViewsClient extends BaseClient {
         );
     }
 
-    public void sendViewToEvents(String ip, List<Long> ids) {
-        for (long id : ids) {
-            sendViewToEvent(ip, id);
-        }
+    public void sendViewToEvents(String ip) {
+        post("/hit",
+                new HitDto(
+                        "ewm-main-service",
+                        "/events",
+                        ip,
+                        LocalDateTime.now()
+                )
+        );
     }
 
 }

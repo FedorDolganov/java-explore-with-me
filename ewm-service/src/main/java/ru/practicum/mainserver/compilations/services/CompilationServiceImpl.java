@@ -43,7 +43,7 @@ public class CompilationServiceImpl implements CompilationService {
                 .flatMap(compilation -> compilation.getEvents().stream().map(Event::getId))
                 .toList();
 
-        Map<Long, Integer> requestsCount = requestRepository.getApprovedRequestsCount(ids);
+        Map<Long, Long> requestsCount = requestRepository.getApprovedRequestsCount(ids);
         Map<Long, Integer> viewsCount = viewsClient.getViewsByList(ids);
 
         return compilations.stream()

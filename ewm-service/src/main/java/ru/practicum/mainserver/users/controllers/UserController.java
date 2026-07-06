@@ -3,6 +3,7 @@ package ru.practicum.mainserver.users.controllers;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.mainserver.events.dto.EventFullDto;
 import ru.practicum.mainserver.events.dto.EventShortDto;
@@ -32,6 +33,7 @@ public class UserController {
         return userService.getUserEvents(userId, from, size);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/{userId}/events")
     public EventFullDto createEvent(@PathVariable long userId,
                                      @Valid  @RequestBody NewEventDto eventDto) {
@@ -70,6 +72,7 @@ public class UserController {
         return userService.getUserRequests(userId);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/{userId}/requests")
     public ParticipationRequestDto createUserEventRequest(@PathVariable long userId,
                                                          @RequestParam long eventId) {

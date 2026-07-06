@@ -157,7 +157,7 @@ class AdminServiceTest {
         List<Event> events = List.of(event);
         List<Long> ids = List.of(1L);
         Map<Long, Integer> viewsCount = Map.of(1L, 10);
-        Map<Long, Integer> requestsCount = Map.of(1L, 5);
+        Map<Long, Long> requestsCount = Map.of(1L, 5L);
 
         when(eventRepository.findAllByFiltersAdmin(isNull(), isNull(), isNull(),
                 isNull(), isNull(), anyInt(), anyInt()))

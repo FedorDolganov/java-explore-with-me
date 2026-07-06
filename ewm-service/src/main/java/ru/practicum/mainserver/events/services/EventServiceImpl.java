@@ -10,6 +10,7 @@ import ru.practicum.mainserver.events.EventState;
 import ru.practicum.mainserver.events.dto.EventFullDto;
 import ru.practicum.mainserver.events.dto.EventShortDto;
 import ru.practicum.mainserver.events.repositories.EventRepository;
+import ru.practicum.mainserver.exceptions.BadRequestException;
 import ru.practicum.mainserver.exceptions.NotFoundException;
 import ru.practicum.mainserver.mappers.EventMapper;
 import ru.practicum.mainserver.users.PendingRequestStatus;
@@ -42,7 +43,11 @@ public class EventServiceImpl implements EventService {
         }
 
         if (rangeEnd == null) {
-            rangeEnd = LocalDateTime.MAX;
+            rangeEnd = LocalDateTime.now().plusYears(1000);
+        }
+
+        if (rangeStart.isAfter(rangeEnd)) {
+            throw new BadRequestException("Начало не может быть позже конца");
         }
 
         List<Event> events = eventRepository.findAllByFilters(EventState.PUBLISHED, text, categories, paid, rangeStart, rangeEnd, from, size);
@@ -51,7 +56,7 @@ public class EventServiceImpl implements EventService {
 
         Map<Long, Integer> viewsCount = viewsClient.getViewsByList(eventIds);
 
-        Map<Long, Integer> requestsCount = requestRepository.getApprovedRequestsCount(eventIds);
+        Map<Long, Long> requestsCount = requestRepository.getApprovedRequestsCount(eventIds);
 
         if (onlyAvailable) {
             events = events.stream()
@@ -62,8 +67,8 @@ public class EventServiceImpl implements EventService {
         List<EventShortDto> eventsDto = events.stream()
                 .map(event -> EventMapper.toShortDto(
                         event,
-                        requestsCount.get(event.getId()),
-                        viewsCount.get(event.getId())
+                        requestsCount.getOrDefault(event.getId(), 0L),
+                        viewsCount.getOrDefault(event.getId(), 0)
                 ))
                 .toList();
 
@@ -81,6 +86,8 @@ public class EventServiceImpl implements EventService {
                     break;
             }
         }
+
+        viewsClient.sendViewToEvents(request.getRemoteAddr());
 
         return eventsDto;
     }

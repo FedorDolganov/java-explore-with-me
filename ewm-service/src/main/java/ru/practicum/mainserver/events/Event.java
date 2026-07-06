@@ -53,13 +53,13 @@ public class Event {
     @Column(name = "published_on")
     private LocalDateTime publishedOn;
 
-    private boolean paid;
+    private Boolean paid;
 
     @Column(name = "participant_limit")
-    private int participantLimit;
+    private Integer participantLimit;
 
     @Column(name = "request_moderation")
-    private boolean requestModeration;
+    private Boolean requestModeration;
 
     @Enumerated(EnumType.STRING)
     private EventState state;

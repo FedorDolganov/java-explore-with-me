@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.mainserver.admin.services.AdminService;
 import ru.practicum.mainserver.categories.dto.CategoryDto;
@@ -29,18 +30,20 @@ public class AdminController {
     private AdminService adminService;
 
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/categories")
     public CategoryDto createCategory(@Valid @RequestBody NewCategoryDto categoryDto) {
         return adminService.createCategory(categoryDto);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/categories/{catId}")
     public void deleteCategory(@PathVariable long catId) {
         adminService.deleteCategory(catId);
     }
 
     @PatchMapping("/categories/{catId}")
-    public CategoryDto updateCategory(@RequestBody NewCategoryDto categoryDto,
+    public CategoryDto updateCategory(@Valid @RequestBody NewCategoryDto categoryDto,
                                       @PathVariable long catId) {
         return adminService.updateCategory(catId, categoryDto);
     }
@@ -59,42 +62,45 @@ public class AdminController {
 
     @PatchMapping("/events/{eventId}")
     public EventFullDto updateEvent(@PathVariable long eventId,
-                                  @RequestBody UpdateEventAdminRequest eventAdminRequest) {
+                                    @Valid @RequestBody UpdateEventAdminRequest eventAdminRequest) {
         return adminService.updateEvent(eventId, eventAdminRequest);
     }
 
 
     @GetMapping("/users")
     public List<UserDto> getUsers(@RequestParam(required = false) String[] ids,
-                                  @RequestParam(required = false) Integer from,
-                                  @RequestParam(required = false) Integer size) {
+                                  @RequestParam(required = false, defaultValue = "0") Integer from,
+                                  @RequestParam(required = false, defaultValue = "10") Integer size) {
         return adminService.getUsers(ids, from, size);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/users")
     public UserDto createUser(@Valid @RequestBody NewUserRequest userRequest) {
         return adminService.createUser(userRequest);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/users/{userId}")
     public void deleteUser(@PathVariable long userId) {
         adminService.deleteUser(userId);
     }
 
-
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/compilations")
     public CompilationDto createCompilation(@Valid @RequestBody NewCompilationDto compilationDto) {
         return adminService.createCompilation(compilationDto);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/compilations/{compId}")
     public void deteleCompilation(@PathVariable long compId) {
         adminService.deteleCompilation(compId);
     }
 
     @PatchMapping("/compilations/{compId}")
-    public CompilationDto updateCompilation(@RequestBody UpdateCompilationRequest compilationRequest,
-                                         @PathVariable long compId) {
+    public CompilationDto updateCompilation(@Valid @RequestBody UpdateCompilationRequest compilationRequest,
+                                            @PathVariable long compId) {
         return adminService.updateCompilation(compId, compilationRequest);
     }
 

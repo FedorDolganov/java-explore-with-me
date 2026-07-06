@@ -96,7 +96,7 @@ class EventServiceTest {
         when(eventRepository.findAllByFilters(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(event1));
         when(viewsClient.getViewsByList(anyList())).thenReturn(Map.of(1L, 100));
-        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5));
+        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5L));
 
         List<EventShortDto> result = eventService.getEvents(
                 httpServletRequest, "text", List.of(1L), false,
@@ -115,7 +115,7 @@ class EventServiceTest {
         when(eventRepository.findAllByFilters(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(event1));
         when(viewsClient.getViewsByList(anyList())).thenReturn(Map.of(1L, 100));
-        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5));
+        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5L));
 
         List<EventShortDto> result = eventService.getEvents(
                 httpServletRequest, "text", List.of(1L), false,
@@ -135,7 +135,7 @@ class EventServiceTest {
         when(eventRepository.findAllByFilters(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(event1));
         when(viewsClient.getViewsByList(anyList())).thenReturn(Map.of(1L, 100));
-        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5));
+        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5L));
 
         List<EventShortDto> result = eventService.getEvents(
                 httpServletRequest, "text", List.of(1L), false,
@@ -151,7 +151,7 @@ class EventServiceTest {
         when(eventRepository.findAllByFilters(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(event1, event2));
         when(viewsClient.getViewsByList(anyList())).thenReturn(Map.of(1L, 100, 2L, 50));
-        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5, 2L, 5));
+        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5L, 2L, 5L));
 
         List<EventShortDto> result = eventService.getEvents(
                 httpServletRequest, null, null, null,
@@ -168,7 +168,7 @@ class EventServiceTest {
         when(eventRepository.findAllByFilters(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(event1, event2));
         when(viewsClient.getViewsByList(anyList())).thenReturn(Map.of(1L, 100, 2L, 50));
-        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5, 2L, 5));
+        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5L, 2L, 5L));
 
         List<EventShortDto> result = eventService.getEvents(
                 httpServletRequest, null, null, null,
@@ -193,7 +193,7 @@ class EventServiceTest {
                 anyInt()))
                 .thenReturn(List.of(event1, event2));
         when(viewsClient.getViewsByList(anyList())).thenReturn(Map.of(1L, 100, 2L, 50));
-        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5, 2L, 5));
+        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5L, 2L, 5L));
 
         List<EventShortDto> result = eventService.getEvents(
                 httpServletRequest, null, null, null,
@@ -210,7 +210,7 @@ class EventServiceTest {
         when(eventRepository.findAllByFilters(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(event2, event1));
         when(viewsClient.getViewsByList(anyList())).thenReturn(Map.of(1L, 100, 2L, 50));
-        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5, 2L, 3));
+        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5L, 2L, 3L));
 
         List<EventShortDto> result = eventService.getEvents(
                 httpServletRequest, null, null, null,
@@ -227,7 +227,7 @@ class EventServiceTest {
         when(eventRepository.findAllByFilters(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(event1, event2));
         when(viewsClient.getViewsByList(anyList())).thenReturn(Map.of(1L, 100, 2L, 50));
-        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5, 2L, 3));
+        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5L, 2L, 3L));
 
         List<EventShortDto> result = eventService.getEvents(
                 httpServletRequest, null, null, null,
@@ -245,7 +245,7 @@ class EventServiceTest {
         when(eventRepository.findAllByFilters(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(event1, event2));
         when(viewsClient.getViewsByList(anyList())).thenReturn(Map.of(1L, 100, 2L, 50));
-        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5, 2L, 3));
+        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5L, 2L, 3L));
 
         List<EventShortDto> result = eventService.getEvents(
                 httpServletRequest, null, null, null,
@@ -282,7 +282,7 @@ class EventServiceTest {
         when(eventRepository.findAllByFilters(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(event1, event2));
         when(viewsClient.getViewsByList(anyList())).thenReturn(Map.of(1L, 100, 2L, 50));
-        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5, 2L, 5));
+        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5L, 2L, 5L));
 
         List<EventShortDto> result = eventService.getEvents(
                 httpServletRequest, null, null, null,
@@ -377,7 +377,7 @@ class EventServiceTest {
         when(eventRepository.findAllByFilters(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(event1));
         when(viewsClient.getViewsByList(anyList())).thenReturn(Map.of(1L, 100));
-        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5));
+        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5L));
 
         List<EventShortDto> result = eventService.getEvents(
                 httpServletRequest, "concert", categories, true,
@@ -395,7 +395,7 @@ class EventServiceTest {
         when(eventRepository.findAllByFilters(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(event1));
         when(viewsClient.getViewsByList(anyList())).thenReturn(Map.of(1L, 100));
-        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5));
+        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5L));
 
         List<EventShortDto> result = eventService.getEvents(
                 httpServletRequest, null, null, null,

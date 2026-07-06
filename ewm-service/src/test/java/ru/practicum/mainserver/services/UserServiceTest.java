@@ -117,7 +117,7 @@ class UserServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(eventRepository.findAllByUserIdAndFromAndSize(anyLong(), anyInt(), anyInt()))
                 .thenReturn(List.of(event));
-        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5));
+        when(requestRepository.getApprovedRequestsCount(anyList())).thenReturn(Map.of(1L, 5L));
         when(viewsClient.getViewsByList(anyList())).thenReturn(Map.of(1L, 100));
 
         List<EventShortDto> result = userService.getUserEvents(1L, 0, 10);

@@ -42,12 +42,12 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
     Optional<ParticipationRequest> findAllByUserIdAndEventId(long userId, long eventId);
 
 
-    default Map<Long, Integer> getApprovedRequestsCount(List<Long> eventIds) {
+    default Map<Long, Long> getApprovedRequestsCount(List<Long> eventIds) {
         return findApprovedByEventIds(eventIds, PendingRequestStatus.CONFIRMED)
                 .stream()
                 .collect(Collectors.toMap(
-                        row -> (Long) row[0],
-                        row -> (Integer) row[1],
+                        row -> (long) row[0],
+                        row -> (long) row[1],
                         (existing, replacement) -> existing
                 ));
     }

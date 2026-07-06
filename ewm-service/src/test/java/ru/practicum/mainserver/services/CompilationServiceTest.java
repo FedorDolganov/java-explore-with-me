@@ -94,7 +94,7 @@ class CompilationServiceTest {
         when(compilationRepository.findByFromAndSize(anyInt(), anyInt()))
                 .thenReturn(List.of(compilation, compilation2));
         when(requestRepository.getApprovedRequestsCount(anyList()))
-                .thenReturn(Map.of(1L, 5, 2L, 3));
+                .thenReturn(Map.of(1L, 5L, 2L, 3L));
         when(viewsClient.getViewsByList(anyList()))
                 .thenReturn(Map.of(1L, 10, 2L, 7));
 
@@ -113,7 +113,7 @@ class CompilationServiceTest {
         when(compilationRepository.findByFromAndSizeAndPinned(anyBoolean(), anyInt(), anyInt()))
                 .thenReturn(List.of(compilation));
         when(requestRepository.getApprovedRequestsCount(anyList()))
-                .thenReturn(Map.of(1L, 5, 2L, 3));
+                .thenReturn(Map.of(1L, 5L, 2L, 3L));
         when(viewsClient.getViewsByList(anyList()))
                 .thenReturn(Map.of(1L, 10, 2L, 7));
 
@@ -130,7 +130,7 @@ class CompilationServiceTest {
         when(compilationRepository.findByFromAndSizeAndPinned(anyBoolean(), anyInt(), anyInt()))
                 .thenReturn(List.of(compilation2));
         when(requestRepository.getApprovedRequestsCount(anyList()))
-                .thenReturn(Map.of(1L, 5));
+                .thenReturn(Map.of(1L, 5L));
         when(viewsClient.getViewsByList(anyList()))
                 .thenReturn(Map.of(1L, 10));
 
@@ -183,7 +183,7 @@ class CompilationServiceTest {
         when(compilationRepository.findByFromAndSize(anyInt(), anyInt()))
                 .thenReturn(List.of(compilation));
         when(requestRepository.getApprovedRequestsCount(anyList()))
-                .thenReturn(Map.of(1L, 5, 2L, 3));
+                .thenReturn(Map.of(1L, 5L, 2L, 3L));
         when(viewsClient.getViewsByList(anyList()))
                 .thenReturn(Map.of(1L, 10, 2L, 7));
 
@@ -198,7 +198,7 @@ class CompilationServiceTest {
     void getCompilation_WhenCompilationExists_ShouldReturnCompilationDto() {
         when(compilationRepository.findById(1L)).thenReturn(Optional.of(compilation));
         when(requestRepository.getApprovedRequestsCount(anyList()))
-                .thenReturn(Map.of(1L, 5, 2L, 3));
+                .thenReturn(Map.of(1L, 5L, 2L, 3L));
         when(viewsClient.getViewsByList(anyList()))
                 .thenReturn(Map.of(1L, 10, 2L, 7));
 
@@ -247,7 +247,7 @@ class CompilationServiceTest {
     void getCompilation_WithMultipleEvents_ShouldCollectAllEventIds() {
         when(compilationRepository.findById(1L)).thenReturn(Optional.of(compilation));
         when(requestRepository.getApprovedRequestsCount(anyList()))
-                .thenReturn(Map.of(1L, 5, 2L, 3));
+                .thenReturn(Map.of(1L, 5L, 2L, 3L));
         when(viewsClient.getViewsByList(anyList()))
                 .thenReturn(Map.of(1L, 10, 2L, 7));
 
@@ -267,7 +267,7 @@ class CompilationServiceTest {
         when(compilationRepository.findByFromAndSize(anyInt(), anyInt()))
                 .thenReturn(List.of(compilation, compilation2));
         when(requestRepository.getApprovedRequestsCount(anyList()))
-                .thenReturn(Map.of(1L, 5, 2L, 3));
+                .thenReturn(Map.of(1L, 5L, 2L, 3L));
         when(viewsClient.getViewsByList(anyList()))
                 .thenReturn(Map.of(1L, 10, 2L, 7));
 

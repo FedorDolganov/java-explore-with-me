@@ -5,7 +5,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.Length;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -13,11 +15,10 @@ import java.util.List;
 @NoArgsConstructor
 public class NewCompilationDto {
 
-    @NotNull
-    private List<Long> events;
+    private List<Long> events = new ArrayList<>();
     @NotBlank
+    @Length(min = 1, max = 50)
     private String title;
-    @NotNull
-    private Boolean pinned;
+    private Boolean pinned = false;
 
 }
