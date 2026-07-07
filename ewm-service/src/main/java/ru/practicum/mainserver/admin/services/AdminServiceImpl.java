@@ -2,9 +2,7 @@ package ru.practicum.mainserver.admin.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import ru.practicum.mainserver.categories.Category;
 import ru.practicum.mainserver.categories.dto.CategoryDto;
 import ru.practicum.mainserver.categories.dto.NewCategoryDto;

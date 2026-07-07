@@ -246,7 +246,7 @@ class AdminControllerTest {
         doNothing().when(adminService).deteleCompilation(1L);
 
         mockMvc.perform(delete("/admin/compilations/{compId}", 1L))
-                .andExpect(status().isNoContent ());
+                .andExpect(status().isNoContent());
 
         verify(adminService, times(1)).deteleCompilation(1L);
     }
