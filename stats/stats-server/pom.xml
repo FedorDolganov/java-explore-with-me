@@ -68,7 +68,7 @@
                 </executions>
                 <configuration>
                     <excludes>
-                        <exclude>ru/practicum/statsserver/StatsServerApp.class</exclude>
+                        <exclude>ru/practicum/statsserver/ru.practicum.mainserver.MainServerApp.class</exclude>
                         <exclude>ru/practicum/statsserver/exceptions/ExceptionsHandler.class</exclude>
                         <exclude>ru/practicum/statsserver/mappers/HitMapper.class</exclude>
                     </excludes>

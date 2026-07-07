@@ -35,7 +35,6 @@ public class StatsControllerTest {
 
     @Test
     void post_Hit() throws Exception {
-
         when(service.hit(any(HitDto.class)))
                 .thenReturn(ResponseEntity.ok().build());
 

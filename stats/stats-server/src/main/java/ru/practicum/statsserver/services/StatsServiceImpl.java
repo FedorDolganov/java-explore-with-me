@@ -1,21 +1,26 @@
 package ru.practicum.statsserver.services;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.statsdto.HitDto;
 import ru.practicum.statsdto.StatsDto;
+import ru.practicum.statsserver.exceptions.BadRequestException;
 import ru.practicum.statsserver.mappers.HitMapper;
 import ru.practicum.statsserver.objects.GroupKey;
 import ru.practicum.statsserver.objects.Hit;
 import ru.practicum.statsserver.repositories.StatsRepository;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class StatsServiceImpl implements StatsService {
@@ -26,13 +31,19 @@ public class StatsServiceImpl implements StatsService {
     public ResponseEntity<?> hit(HitDto hitDto) {
         repository.save(HitMapper.to(hitDto));
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(201).build();
     }
 
     public List<StatsDto> getStats(LocalDateTime start, LocalDateTime end, String[] uris, Boolean unique) {
         if (unique == null) {
             unique = false;
         }
+
+        if (start.isAfter(end)) {
+            throw new BadRequestException("Начало не может быть позже конца");
+        }
+
+        log.info(Arrays.toString(uris));
 
         Map<GroupKey, List<Hit>> listHits;
 
@@ -61,6 +72,7 @@ public class StatsServiceImpl implements StatsService {
                                                     .size()
                                     )
                     )
+                    .sorted(Comparator.comparingInt(StatsDto::getHits).reversed())
                     .toList();
         } else {
             return listHits.entrySet().stream()
@@ -72,6 +84,7 @@ public class StatsServiceImpl implements StatsService {
                                             entry.getValue().size()
                                     )
                     )
+                    .sorted(Comparator.comparingInt(StatsDto::getHits).reversed())
                     .toList();
         }
     }
