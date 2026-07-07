@@ -15,6 +15,7 @@ import ru.practicum.statsserver.repositories.StatsRepository;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -71,6 +72,7 @@ public class StatsServiceImpl implements StatsService {
                                                     .size()
                                     )
                     )
+                    .sorted(Comparator.comparingInt(StatsDto::getHits).reversed())
                     .toList();
         } else {
             return listHits.entrySet().stream()
@@ -82,6 +84,7 @@ public class StatsServiceImpl implements StatsService {
                                             entry.getValue().size()
                                     )
                     )
+                    .sorted(Comparator.comparingInt(StatsDto::getHits).reversed())
                     .toList();
         }
     }
