@@ -66,6 +66,8 @@ class CompilationServiceTest {
         event.setEventDate(LocalDateTime.now().plusDays(5));
         event.setAnnotation("Test");
         event.setDescription("Test");
+        event.setParticipantLimit(0);
+        event.setPaid(false);
 
         event2 = new Event();
         event2.setId(2L);
@@ -75,12 +77,15 @@ class CompilationServiceTest {
         event2.setEventDate(LocalDateTime.now().plusDays(10));
         event2.setAnnotation("Test");
         event2.setDescription("Test");
+        event2.setParticipantLimit(10);
+        event2.setPaid(true);
 
         compilation = new Compilation();
         compilation.setId(1L);
         compilation.setTitle("Test Compilation");
         compilation.setPinned(true);
         compilation.setEvents(new HashSet<>(List.of(event, event2)));
+
 
         compilation2 = new Compilation();
         compilation2.setId(2L);

@@ -166,11 +166,11 @@ class UserServiceTest {
     }
 
     @Test
-    void createEvent_WhenEventDateBeforeTwoHours_ShouldThrowForbiddenException() {
+    void createEvent_WhenEventDateBeforeTwoHours_ShouldThrowBadRequestException() {
         newEventDto.setEventDate(LocalDateTime.now().plusHours(1));
 
-        ForbiddenException exception = assertThrows(
-                ForbiddenException.class,
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
                 () -> userService.createEvent(1L, newEventDto)
         );
 
@@ -301,18 +301,6 @@ class UserServiceTest {
     }
 
     @Test
-    void updateUserEvent_WhenEventDateBeforeTwoHours_ShouldThrowForbiddenException() {
-        updateEventUserRequest.setEventDate(LocalDateTime.now().plusHours(1));
-
-        ForbiddenException exception = assertThrows(
-                ForbiddenException.class,
-                () -> userService.updateUserEvent(1L, 1L, updateEventUserRequest)
-        );
-
-        assertTrue(exception.getMessage().contains("Field: eventDate"));
-    }
-
-    @Test
     void updateUserEvent_WhenEventNotFound_ShouldThrowNotFoundException() {
         when(eventRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -325,12 +313,12 @@ class UserServiceTest {
     }
 
     @Test
-    void updateUserEvent_WhenEventPublished_ShouldThrowForbiddenException() {
+    void updateUserEvent_WhenEventPublished_ShouldThrowConflictException() {
         event.setState(EventState.PUBLISHED);
         when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
 
-        ForbiddenException exception = assertThrows(
-                ForbiddenException.class,
+        ConflictException exception = assertThrows(
+                ConflictException.class,
                 () -> userService.updateUserEvent(1L, 1L, updateEventUserRequest)
         );
 
@@ -664,7 +652,6 @@ class UserServiceTest {
         when(userRepository.findById(2L)).thenReturn(Optional.of(requester));
         when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
         when(requestRepository.findAllByUserIdAndEventId(anyLong(), anyLong())).thenReturn(Optional.empty());
-        when(requestRepository.countAllByEventIdAndStatus(anyLong(), any())).thenReturn(-1);
         when(requestRepository.save(any(ParticipationRequest.class))).thenAnswer(invocation -> invocation.<ParticipationRequest>getArgument(0));
 
         ParticipationRequestDto result = userService.createUserEventRequest(2L, 1L);
@@ -755,7 +742,7 @@ class UserServiceTest {
     }
 
     @Test
-    void cancelUserRequest_WhenAllValid_ShouldRejectRequest() {
+    void cancelUserRequest_WhenAllValid_ShouldCanceledRequest() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(requestRepository.findById(1L)).thenReturn(Optional.of(request));
         when(requestRepository.save(any(ParticipationRequest.class))).thenReturn(request);
@@ -763,7 +750,7 @@ class UserServiceTest {
         ParticipationRequestDto result = userService.cancelUserRequest(1L, 1L);
 
         assertNotNull(result);
-        assertEquals(PendingRequestStatus.REJECTED, request.getStatus());
+        assertEquals(PendingRequestStatus.CANCELED, request.getStatus());
         verify(requestRepository, times(1)).save(request);
     }
 

@@ -23,6 +23,7 @@ import ru.practicum.mainserver.events.EventStateAction;
 import ru.practicum.mainserver.events.dto.EventFullDto;
 import ru.practicum.mainserver.events.dto.UpdateEventAdminRequest;
 import ru.practicum.mainserver.events.repositories.EventRepository;
+import ru.practicum.mainserver.exceptions.BadRequestException;
 import ru.practicum.mainserver.exceptions.ConflictException;
 import ru.practicum.mainserver.exceptions.NotFoundException;
 import ru.practicum.mainserver.users.PendingRequestStatus;
@@ -185,15 +186,15 @@ class AdminServiceTest {
     }
 
     @Test
-    void updateEvent_WhenEventDateTooEarly_ShouldThrowConflictException() {
+    void updateEvent_WhenEventDateTooEarly_ShouldThrowBadRequestException() {
         event.setCreatedOn(LocalDateTime.now());
         when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
 
         UpdateEventAdminRequest request = new UpdateEventAdminRequest();
         request.setEventDate(LocalDateTime.now().plusMinutes(30));
 
-        ConflictException exception = assertThrows(
-                ConflictException.class,
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
                 () -> adminService.updateEvent(1L, request)
         );
 

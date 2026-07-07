@@ -61,9 +61,9 @@ class UserControllerTest {
     @Test
     void createEvent() throws Exception {
         NewEventDto newEventDto = new NewEventDto();
-        newEventDto.setTitle("Test title");
-        newEventDto.setAnnotation("Test annotation");
-        newEventDto.setDescription("Test desc");
+        newEventDto.setTitle("Test titletesttesttest");
+        newEventDto.setAnnotation("Test annotationtesttesttest");
+        newEventDto.setDescription("Test descriptiontesttesttest");
         newEventDto.setCategory(1L);
         newEventDto.setPaid(false);
         newEventDto.setParticipantLimit(10);
@@ -82,7 +82,7 @@ class UserControllerTest {
         mockMvc.perform(post("/users/{userId}/events", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newEventDto)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.title").value("Test title"))
                 .andExpect(jsonPath("$.state").value("PENDING"));
@@ -111,8 +111,8 @@ class UserControllerTest {
     @Test
     void updateUserEvent() throws Exception {
         UpdateEventUserRequest updateRequest = new UpdateEventUserRequest();
-        updateRequest.setTitle("Updated event");
-        updateRequest.setAnnotation("Updated annotation");
+        updateRequest.setTitle("Updated eventtesttesttest");
+        updateRequest.setAnnotation("Updated annotationtesttesttest");
         updateRequest.setStateAction(EventStateActionUser.SEND_TO_REVIEW);
 
         EventFullDto eventFullDto = new EventFullDto();
@@ -214,7 +214,7 @@ class UserControllerTest {
 
         mockMvc.perform(post("/users/{userId}/requests", 1L)
                         .param("eventId", String.valueOf(2L)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.event").value(2))
                 .andExpect(jsonPath("$.requester").value(1))

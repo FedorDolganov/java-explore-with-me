@@ -55,7 +55,7 @@ class AdminControllerTest {
         mockMvc.perform(post("/admin/categories")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new NewCategoryDto("Test category"))))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Test category"));
 
@@ -67,7 +67,7 @@ class AdminControllerTest {
         doNothing().when(adminService).deleteCategory(1L);
 
         mockMvc.perform(delete("/admin/categories/{catId}", 1L))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(adminService, times(1)).deleteCategory(1L);
     }
@@ -199,7 +199,7 @@ class AdminControllerTest {
                                 "Updated user"
 
                         ))))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Updated user"))
                 .andExpect(jsonPath("$.email").value("test@yandex.ru"));
@@ -212,7 +212,7 @@ class AdminControllerTest {
         doNothing().when(adminService).deleteUser(1L);
 
         mockMvc.perform(delete("/admin/users/{userId}", 1L))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(adminService, times(1)).deleteUser(1L);
     }
@@ -233,7 +233,7 @@ class AdminControllerTest {
                                 "Test compilation",
                                 true
                         ))))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.title").value("Test compilation"))
                 .andExpect(jsonPath("$.pinned").value(true));
@@ -246,7 +246,7 @@ class AdminControllerTest {
         doNothing().when(adminService).deteleCompilation(1L);
 
         mockMvc.perform(delete("/admin/compilations/{compId}", 1L))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent ());
 
         verify(adminService, times(1)).deteleCompilation(1L);
     }
