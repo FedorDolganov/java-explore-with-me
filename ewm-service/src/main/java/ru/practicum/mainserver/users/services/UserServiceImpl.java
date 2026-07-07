@@ -2,6 +2,7 @@ package ru.practicum.mainserver.users.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.mainserver.categories.Category;
 import ru.practicum.mainserver.categories.repositories.CategoryRepository;
 import ru.practicum.mainserver.client.ViewsClient;
@@ -83,6 +84,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public EventFullDto createEvent(long userId, NewEventDto eventDto) {
         if (eventDto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
             throw new BadRequestException(String.format("Field: eventDate. Error: должно содержать дату, которая еще не наступила. Value: %s", eventDto.getEventDate()));
@@ -131,6 +133,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public EventFullDto updateUserEvent(long userId, long eventId, UpdateEventUserRequest eventUserRequest) {
         Optional<Event> event = eventRepository.findById(eventId);
 
@@ -201,6 +204,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public EventRequestStatusUpdateResult updateUserEventRequests(long userId, long eventId, EventRequestStatusUpdateRequest eventRequest) {
         Optional<Event> event = eventRepository.findById(eventId);
 
@@ -286,6 +290,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public ParticipationRequestDto createUserEventRequest(long userId, long eventId) {
         Optional<User> user = userRepository.findById(userId);
 
@@ -331,6 +336,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public ParticipationRequestDto cancelUserRequest(long userId, long requestId) {
         Optional<User> user = userRepository.findById(userId);
 

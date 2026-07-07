@@ -1,10 +1,12 @@
 package ru.practicum.mainserver.admin.controllers;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.mainserver.admin.services.AdminService;
 import ru.practicum.mainserver.categories.dto.CategoryDto;
@@ -24,6 +26,7 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/admin")
 @AllArgsConstructor
+@Validated
 public class AdminController {
 
     @Autowired
@@ -38,13 +41,13 @@ public class AdminController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/categories/{catId}")
-    public void deleteCategory(@PathVariable long catId) {
+    public void deleteCategory(@Positive @PathVariable long catId) {
         adminService.deleteCategory(catId);
     }
 
     @PatchMapping("/categories/{catId}")
     public CategoryDto updateCategory(@Valid @RequestBody NewCategoryDto categoryDto,
-                                      @PathVariable long catId) {
+                                      @Positive @PathVariable long catId) {
         return adminService.updateCategory(catId, categoryDto);
     }
 
@@ -55,13 +58,13 @@ public class AdminController {
                                         @RequestParam(required = false) List<Long> categories,
                                         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") @RequestParam(required = false) LocalDateTime rangeStart,
                                         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") @RequestParam(required = false) LocalDateTime rangeEnd,
-                                        @RequestParam(required = false, defaultValue = "0") Integer from,
-                                        @RequestParam(required = false, defaultValue = "10") Integer size) {
+                                        @RequestParam(defaultValue = "0") Integer from,
+                                        @RequestParam(defaultValue = "10") Integer size) {
         return adminService.getEvents(users, states, categories, rangeStart, rangeEnd, from, size);
     }
 
     @PatchMapping("/events/{eventId}")
-    public EventFullDto updateEvent(@PathVariable long eventId,
+    public EventFullDto updateEvent(@Positive @PathVariable long eventId,
                                     @Valid @RequestBody UpdateEventAdminRequest eventAdminRequest) {
         return adminService.updateEvent(eventId, eventAdminRequest);
     }
@@ -69,8 +72,8 @@ public class AdminController {
 
     @GetMapping("/users")
     public List<UserDto> getUsers(@RequestParam(required = false) String[] ids,
-                                  @RequestParam(required = false, defaultValue = "0") Integer from,
-                                  @RequestParam(required = false, defaultValue = "10") Integer size) {
+                                  @RequestParam(defaultValue = "0") Integer from,
+                                  @RequestParam(defaultValue = "10") Integer size) {
         return adminService.getUsers(ids, from, size);
     }
 
@@ -82,7 +85,7 @@ public class AdminController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/users/{userId}")
-    public void deleteUser(@PathVariable long userId) {
+    public void deleteUser(@Positive @PathVariable long userId) {
         adminService.deleteUser(userId);
     }
 
@@ -94,7 +97,7 @@ public class AdminController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/compilations/{compId}")
-    public void deteleCompilation(@PathVariable long compId) {
+    public void deteleCompilation(@Positive @PathVariable long compId) {
         adminService.deteleCompilation(compId);
     }
 

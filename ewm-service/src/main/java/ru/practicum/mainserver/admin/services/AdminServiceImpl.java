@@ -3,6 +3,7 @@ package ru.practicum.mainserver.admin.services;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.mainserver.categories.Category;
 import ru.practicum.mainserver.categories.dto.CategoryDto;
 import ru.practicum.mainserver.categories.dto.NewCategoryDto;
@@ -59,11 +60,13 @@ public class AdminServiceImpl implements AdminService {
 
 
     @Override
+    @Transactional
     public CategoryDto createCategory(NewCategoryDto categoryDto) {
         return CategoryMapper.toDto(categoryRepository.save(CategoryMapper.to(categoryDto)));
     }
 
     @Override
+    @Transactional
     public void deleteCategory(long catId) {
         if (!eventRepository.findAllByCatId(catId).isEmpty()) {
             throw new ConflictException("Category already has linked events");
@@ -73,6 +76,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional
     public CategoryDto updateCategory(long catId, NewCategoryDto categoryDto) {
         Optional<Category> category = categoryRepository.findById(catId);
 
@@ -104,6 +108,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional
     public EventFullDto updateEvent(long eventId, UpdateEventAdminRequest eventAdminRequest) {
         Optional<Event> event = eventRepository.findById(eventId);
 
@@ -154,16 +159,19 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional
     public UserDto createUser(NewUserRequest userRequest) {
         return UserMapper.toDto(userRepository.save(UserMapper.to(userRequest)));
     }
 
     @Override
+    @Transactional
     public void deleteUser(long userId) {
         userRepository.deleteById(userId);
     }
 
     @Override
+    @Transactional
     public CompilationDto createCompilation(NewCompilationDto compilationDto) {
 
         return CompilationMapper.toDto(
@@ -176,11 +184,13 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional
     public void deteleCompilation(long compId) {
         compilationRepository.deleteById(compId);
     }
 
     @Override
+    @Transactional
     public CompilationDto updateCompilation(long compId, UpdateCompilationRequest compilationRequest) {
         Optional<Compilation> compilation = compilationRepository.findById(compId);
 
