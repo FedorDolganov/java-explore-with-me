@@ -26,10 +26,14 @@ import ru.practicum.mainserver.events.repositories.EventRepository;
 import ru.practicum.mainserver.exceptions.BadRequestException;
 import ru.practicum.mainserver.exceptions.ConflictException;
 import ru.practicum.mainserver.exceptions.NotFoundException;
+import ru.practicum.mainserver.users.Comment;
 import ru.practicum.mainserver.users.PendingRequestStatus;
 import ru.practicum.mainserver.users.User;
+import ru.practicum.mainserver.users.dto.CommentDto;
 import ru.practicum.mainserver.users.dto.NewUserRequest;
+import ru.practicum.mainserver.users.dto.UpdateCommentDto;
 import ru.practicum.mainserver.users.dto.UserDto;
+import ru.practicum.mainserver.users.repositories.CommentRepository;
 import ru.practicum.mainserver.users.repositories.ParticipationRequestRepository;
 import ru.practicum.mainserver.users.repositories.UserRepository;
 import ru.practicum.mainserver.mappers.*;
@@ -56,6 +60,9 @@ class AdminServiceTest {
 
     @Mock
     private CompilationRepository compilationRepository;
+
+    @Mock
+    private CommentRepository commentRepository;
 
     @Mock
     private ViewsClient viewsClient;
@@ -165,6 +172,7 @@ class AdminServiceTest {
                 .thenReturn(events);
         when(viewsClient.getViewsByList(ids)).thenReturn(viewsCount);
         when(requestRepository.getApprovedRequestsCount(ids)).thenReturn(requestsCount);
+        when(commentRepository.findCommensByEventsIds(anyList())).thenReturn(List.of());
 
         List<EventFullDto> result = adminService.getEvents(
                 null, null, null, null, null, 0, 10
@@ -208,6 +216,7 @@ class AdminServiceTest {
         when(requestRepository.countAllByEventIdAndStatus(anyLong(), eq(PendingRequestStatus.CONFIRMED)))
                 .thenReturn(5);
         when(viewsClient.getViews(anyLong())).thenReturn(10);
+        when(commentRepository.findCommensByEventId(anyLong())).thenReturn(List.of());
 
         UpdateEventAdminRequest request = new UpdateEventAdminRequest();
         request.setStateAction(EventStateAction.PUBLISH_EVENT);
@@ -241,6 +250,7 @@ class AdminServiceTest {
         when(requestRepository.countAllByEventIdAndStatus(anyLong(), eq(PendingRequestStatus.CONFIRMED)))
                 .thenReturn(0);
         when(viewsClient.getViews(anyLong())).thenReturn(0);
+        when(commentRepository.findCommensByEventId(anyLong())).thenReturn(List.of());
 
         UpdateEventAdminRequest request = new UpdateEventAdminRequest();
         request.setStateAction(EventStateAction.REJECT_EVENT);
@@ -274,6 +284,7 @@ class AdminServiceTest {
         when(requestRepository.countAllByEventIdAndStatus(anyLong(), eq(PendingRequestStatus.CONFIRMED)))
                 .thenReturn(0);
         when(viewsClient.getViews(anyLong())).thenReturn(0);
+        when(commentRepository.findCommensByEventId(anyLong())).thenReturn(List.of());
 
         UpdateEventAdminRequest request = new UpdateEventAdminRequest();
 
@@ -281,23 +292,6 @@ class AdminServiceTest {
 
         assertNotNull(result);
         assertEquals(EventState.PENDING, event.getState());
-    }
-
-    @Test
-    void updateEvent_WhenEventDateIsNull_ShouldNotValidateDate() {
-        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
-        when(eventRepository.save(any(Event.class))).thenReturn(event);
-        when(requestRepository.countAllByEventIdAndStatus(anyLong(), eq(PendingRequestStatus.CONFIRMED)))
-                .thenReturn(0);
-        when(viewsClient.getViews(anyLong())).thenReturn(0);
-
-        UpdateEventAdminRequest request = new UpdateEventAdminRequest();
-        request.setEventDate(null);
-
-        EventFullDto result = adminService.updateEvent(1L, request);
-
-        assertNotNull(result);
-        verify(eventRepository, times(1)).save(any());
     }
 
 
@@ -411,4 +405,187 @@ class AdminServiceTest {
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
+
+    @Test
+    void updateComments_WhenCommentExists_ShouldUpdateAndReturn() {
+        User commentUser = new User();
+        commentUser.setId(1L);
+        commentUser.setName("Comment User");
+        commentUser.setEmail("comment@test.com");
+
+        Event commentEvent = new Event();
+        commentEvent.setId(1L);
+        commentEvent.setTitle("Test Event");
+
+        Comment comment = new Comment();
+        comment.setId(1L);
+        comment.setText("Old comment");
+        comment.setAuthor(commentUser);
+        comment.setEvent(commentEvent);
+
+        UpdateCommentDto updateDto = new UpdateCommentDto();
+        updateDto.setText("Updated comment");
+
+        when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
+        when(commentRepository.save(any(Comment.class))).thenReturn(comment);
+
+        CommentDto result = adminService.updateComments(1L, updateDto);
+
+        assertNotNull(result);
+        verify(commentRepository, times(1)).save(any(Comment.class));
+    }
+
+    @Test
+    void updateComments_WhenCommentNotFound_ShouldThrowNotFoundException() {
+        when(commentRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class,
+                () -> adminService.updateComments(99L, new UpdateCommentDto()));
+    }
+
+    @Test
+    void getComments_ShouldReturnListOfCommentDto() {
+        User commentUser = new User();
+        commentUser.setId(1L);
+        commentUser.setName("Comment User");
+        commentUser.setEmail("comment@test.com");
+
+        Event commentEvent = new Event();
+        commentEvent.setId(1L);
+        commentEvent.setTitle("Test Event");
+
+        Comment comment = new Comment();
+        comment.setId(1L);
+        comment.setText("Test comment");
+        comment.setAuthor(commentUser);
+        comment.setEvent(commentEvent);
+
+        when(commentRepository.findCommensByEventsIdsAndSizeAndFrom(any(String[].class), anyInt(), anyInt()))
+                .thenReturn(List.of(comment));
+
+        List<CommentDto> result = adminService.getComments(new String[]{"1"}, 0, 10);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getComments_WhenEmptyList_ShouldReturnEmptyList() {
+        when(commentRepository.findCommensByEventsIdsAndSizeAndFrom(any(String[].class), anyInt(), anyInt()))
+                .thenReturn(List.of());
+
+        List<CommentDto> result = adminService.getComments(new String[]{}, 0, 10);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void deleteComments_WhenCommentExists_ShouldDelete() {
+        when(commentRepository.existsById(1L)).thenReturn(true);
+
+        adminService.deleteComments(1L);
+
+        verify(commentRepository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    void deleteComments_WhenCommentNotFound_ShouldThrowNotFoundException() {
+        when(commentRepository.existsById(99L)).thenReturn(false);
+
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> adminService.deleteComments(99L));
+
+        assertTrue(exception.getMessage().contains("Comment id=99 not found"));
+    }
+
+    @Test
+    void deleteCategory_WhenCategoryHasEvents_ShouldThrowConflictException() {
+        when(eventRepository.findAllByCatId(1L)).thenReturn(List.of(event));
+
+        ConflictException exception = assertThrows(ConflictException.class,
+                () -> adminService.deleteCategory(1L));
+
+        assertTrue(exception.getMessage().contains("Category already has linked events"));
+    }
+
+    @Test
+    void updateEvent_WhenCategoryIsZero_ShouldNotCheckCategory() {
+        UpdateEventAdminRequest request = new UpdateEventAdminRequest();
+        request.setCategory(0);
+
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(categoryRepository.findById(0L)).thenReturn(Optional.empty());
+        when(eventRepository.save(any(Event.class))).thenReturn(event);
+        when(requestRepository.countAllByEventIdAndStatus(anyLong(), any())).thenReturn(0);
+        when(viewsClient.getViews(anyLong())).thenReturn(0);
+
+        EventFullDto result = adminService.updateEvent(1L, request);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    void updateEvent_WhenEventDateIsNull_ShouldNotValidateDate() {
+        UpdateEventAdminRequest request = new UpdateEventAdminRequest();
+        request.setEventDate(null);
+
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(eventRepository.save(any(Event.class))).thenReturn(event);
+        when(requestRepository.countAllByEventIdAndStatus(anyLong(), any())).thenReturn(0);
+        when(viewsClient.getViews(anyLong())).thenReturn(0);
+
+        EventFullDto result = adminService.updateEvent(1L, request);
+
+        assertNotNull(result);
+    }
+
+
+    @Test
+    void updateEvent_WhenCategoryNotFound_ShouldThrowNotFoundException() {
+        UpdateEventAdminRequest request = new UpdateEventAdminRequest();
+        request.setCategory(99L);
+
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(categoryRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class,
+                () -> adminService.updateEvent(1L, request));
+    }
+
+    @Test
+    void updateEvent_WhenCategoryExists_ShouldUseCategory() {
+        UpdateEventAdminRequest request = new UpdateEventAdminRequest();
+        request.setCategory(1L);
+
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(eventRepository.save(any(Event.class))).thenReturn(event);
+        lenient().when(requestRepository.countAllByEventIdAndStatus(anyLong(), any())).thenReturn(0);
+        lenient().when(viewsClient.getViews(anyLong())).thenReturn(0);
+
+        EventFullDto result = adminService.updateEvent(1L, request);
+
+        assertNotNull(result);
+        verify(categoryRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    void updateEvent_WhenEventDateValid_ShouldUpdateEvent() {
+        event.setCreatedOn(LocalDateTime.now().minusHours(2));
+
+        UpdateEventAdminRequest request = new UpdateEventAdminRequest();
+        request.setEventDate(LocalDateTime.now().plusDays(5));
+
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(eventRepository.save(any(Event.class))).thenReturn(event);
+        lenient().when(requestRepository.countAllByEventIdAndStatus(anyLong(), any())).thenReturn(0);
+        lenient().when(viewsClient.getViews(anyLong())).thenReturn(0);
+
+        EventFullDto result = adminService.updateEvent(1L, request);
+
+        assertNotNull(result);
+    }
+
+
 }

@@ -3,6 +3,8 @@ package ru.practicum.mainserver.admin.services;
 import jakarta.validation.Valid;
 import ru.practicum.mainserver.categories.dto.CategoryDto;
 import ru.practicum.mainserver.categories.dto.NewCategoryDto;
+import ru.practicum.mainserver.users.dto.CommentDto;
+import ru.practicum.mainserver.users.dto.UpdateCommentDto;
 import ru.practicum.mainserver.compilations.dto.CompilationDto;
 import ru.practicum.mainserver.compilations.dto.NewCompilationDto;
 import ru.practicum.mainserver.compilations.dto.UpdateCompilationRequest;
@@ -37,4 +39,10 @@ public interface AdminService {
     void deteleCompilation(long compId);
 
     CompilationDto updateCompilation(long compId, UpdateCompilationRequest compilationRequest);
+
+    CommentDto updateComments(long comId, @Valid UpdateCommentDto commentDto);
+
+    List<CommentDto> getComments(String[] ids, Integer from, Integer size);
+
+    void deleteComments(long comId);
 }

@@ -5,10 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.mainserver.categories.dto.CategoryDto;
+import ru.practicum.mainserver.users.dto.CommentDto;
 import ru.practicum.mainserver.events.EventState;
 import ru.practicum.mainserver.users.dto.UserShortDto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -34,5 +36,6 @@ public class EventFullDto {
     private CategoryDto category;
     private UserShortDto initiator;
     private Location location;
+    private List<CommentDto> comments;
 
 }

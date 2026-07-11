@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.mainserver.admin.services.AdminService;
 import ru.practicum.mainserver.categories.dto.CategoryDto;
 import ru.practicum.mainserver.categories.dto.NewCategoryDto;
+import ru.practicum.mainserver.users.dto.CommentDto;
+import ru.practicum.mainserver.users.dto.UpdateCommentDto;
 import ru.practicum.mainserver.compilations.dto.CompilationDto;
 import ru.practicum.mainserver.compilations.dto.NewCompilationDto;
 import ru.practicum.mainserver.compilations.dto.UpdateCompilationRequest;
@@ -105,6 +107,26 @@ public class AdminController {
     public CompilationDto updateCompilation(@Valid @RequestBody UpdateCompilationRequest compilationRequest,
                                             @PathVariable long compId) {
         return adminService.updateCompilation(compId, compilationRequest);
+    }
+
+
+    @PatchMapping("/comments/{comId}")
+    public CommentDto updateComment(@Valid @RequestBody UpdateCommentDto commentDto,
+                                    @PathVariable long comId) {
+        return adminService.updateComments(comId, commentDto);
+    }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/comments/{comId}")
+    public void deleteComment(@PathVariable long comId) {
+        adminService.deleteComments(comId);
+    }
+
+    @GetMapping("/comments")
+    public List<CommentDto> getComments(@RequestParam(required = false) String[] ids,
+                                        @RequestParam(defaultValue = "0") Integer from,
+                                        @RequestParam(defaultValue = "10") Integer size) {
+        return adminService.getComments(ids, from, size);
     }
 
 }

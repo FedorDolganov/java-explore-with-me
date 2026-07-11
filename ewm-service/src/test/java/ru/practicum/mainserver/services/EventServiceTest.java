@@ -16,9 +16,11 @@ import ru.practicum.mainserver.events.dto.EventFullDto;
 import ru.practicum.mainserver.events.dto.EventShortDto;
 import ru.practicum.mainserver.events.repositories.EventRepository;
 import ru.practicum.mainserver.events.services.EventServiceImpl;
+import ru.practicum.mainserver.exceptions.BadRequestException;
 import ru.practicum.mainserver.exceptions.NotFoundException;
 import ru.practicum.mainserver.users.PendingRequestStatus;
 import ru.practicum.mainserver.users.User;
+import ru.practicum.mainserver.users.repositories.CommentRepository;
 import ru.practicum.mainserver.users.repositories.ParticipationRequestRepository;
 
 import java.time.LocalDateTime;
@@ -45,8 +47,13 @@ class EventServiceTest {
     @Mock
     private HttpServletRequest httpServletRequest;
 
+    @Mock
+    private CommentRepository commentRepository;
+
     @InjectMocks
     private EventServiceImpl eventService;
+
+
 
     private Event event1;
     private Event event2;
@@ -301,6 +308,7 @@ class EventServiceTest {
         when(requestRepository.countAllByEventIdAndStatus(anyLong(), any()))
                 .thenReturn(5);
         when(viewsClient.getViews(anyLong())).thenReturn(100);
+        when(commentRepository.findCommensByEventId(anyLong())).thenReturn(List.of());
 
         EventFullDto result = eventService.getEvent(httpServletRequest, 1L);
 
@@ -362,6 +370,7 @@ class EventServiceTest {
         when(httpServletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
         when(requestRepository.countAllByEventIdAndStatus(anyLong(), any())).thenReturn(0);
         when(viewsClient.getViews(anyLong())).thenReturn(0);
+        when(commentRepository.findCommensByEventId(anyLong())).thenReturn(List.of());
 
         eventService.getEvent(httpServletRequest, 1L);
 
@@ -407,5 +416,17 @@ class EventServiceTest {
         verify(eventRepository).findAllByFilters(
                 any(), any(), eq(null), any(), any(), any(), any(), any()
         );
+    }
+
+    @Test
+    void getEvents_WhenRangeStartAfterRangeEnd_ShouldThrowBadRequestException() {
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> eventService.getEvents(
+                        httpServletRequest, null, null, null,
+                        LocalDateTime.now().plusDays(1), LocalDateTime.now(),
+                        false, null, 0, 10
+                ));
+
+        assertTrue(exception.getMessage().contains("Начало не может быть позже конца"));
     }
 }

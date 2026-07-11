@@ -9,6 +9,9 @@ import ru.practicum.mainserver.categories.dto.CategoryDto;
 import ru.practicum.mainserver.categories.dto.NewCategoryDto;
 import ru.practicum.mainserver.categories.repositories.CategoryRepository;
 import ru.practicum.mainserver.client.ViewsClient;
+import ru.practicum.mainserver.users.Comment;
+import ru.practicum.mainserver.users.dto.CommentDto;
+import ru.practicum.mainserver.users.dto.UpdateCommentDto;
 import ru.practicum.mainserver.compilations.Compilation;
 import ru.practicum.mainserver.compilations.dto.CompilationDto;
 import ru.practicum.mainserver.compilations.dto.NewCompilationDto;
@@ -27,6 +30,7 @@ import ru.practicum.mainserver.mappers.*;
 import ru.practicum.mainserver.users.PendingRequestStatus;
 import ru.practicum.mainserver.users.dto.NewUserRequest;
 import ru.practicum.mainserver.users.dto.UserDto;
+import ru.practicum.mainserver.users.repositories.CommentRepository;
 import ru.practicum.mainserver.users.repositories.ParticipationRequestRepository;
 import ru.practicum.mainserver.users.repositories.UserRepository;
 
@@ -56,6 +60,9 @@ public class AdminServiceImpl implements AdminService {
 
     @Autowired
     private ParticipationRequestRepository requestRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
 
 
 
@@ -97,12 +104,17 @@ public class AdminServiceImpl implements AdminService {
 
         Map<Long, Integer> viewsCount = viewsClient.getViewsByList(ids);
         Map<Long, Long> requestsCount = requestRepository.getApprovedRequestsCount(ids);
+        List<Comment> comments = commentRepository.findCommensByEventsIds(ids);
 
         return events.stream()
                 .map(event ->  EventMapper.toFullDto(
                         event,
                         requestsCount.getOrDefault(event.getId(), 0L),
-                        viewsCount.getOrDefault(event.getId(), 0)
+                        viewsCount.getOrDefault(event.getId(), 0),
+                        comments.stream()
+                                .filter(comment -> comment.getEvent().getId() == event.getId())
+                                .map(CommentMapper::toDto)
+                                .toList()
                 ))
                 .toList();
     }
@@ -147,7 +159,10 @@ public class AdminServiceImpl implements AdminService {
         return EventMapper.toFullDto(
                 eventRepository.save(event.get()),
                 requestRepository.countAllByEventIdAndStatus(eventId, PendingRequestStatus.CONFIRMED),
-                viewsClient.getViews(eventId)
+                viewsClient.getViews(eventId),
+                commentRepository.findCommensByEventId(eventId).stream()
+                        .map(CommentMapper::toDto)
+                        .toList()
         );
     }
 
@@ -173,7 +188,6 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public CompilationDto createCompilation(NewCompilationDto compilationDto) {
-
         return CompilationMapper.toDto(
                 compilationRepository.save(
                         CompilationMapper.to(compilationDto, eventRepository.findByIds(compilationDto.getEvents()))
@@ -209,5 +223,38 @@ public class AdminServiceImpl implements AdminService {
                 requestRepository.getApprovedRequestsCount(eventIds),
                 viewsClient.getViewsByList(eventIds)
         );
+    }
+
+    @Override
+    @Transactional
+    public CommentDto updateComments(long comId, UpdateCommentDto commentDto) {
+        Optional<Comment> comment = commentRepository.findById(comId);
+
+        if (comment.isEmpty()) {
+            throw new NotFoundException(String.format("Comment id=%s not found.", comId));
+        }
+
+        comment.get().setText(commentDto.getText());
+
+        return CommentMapper.toDto(
+                commentRepository.save(comment.get())
+        );
+    }
+
+    @Override
+    public List<CommentDto> getComments(String[] ids, Integer from, Integer size) {
+        return commentRepository.findCommensByEventsIdsAndSizeAndFrom(ids, from, size).stream()
+                .map(CommentMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public void deleteComments(long comId) {
+        if (!commentRepository.existsById(comId)) {
+            throw new NotFoundException(String.format("Comment id=%s not found.", comId));
+        }
+
+        commentRepository.deleteById(comId);
     }
 }

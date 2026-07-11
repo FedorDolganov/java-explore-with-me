@@ -2,12 +2,14 @@ package ru.practicum.mainserver.mappers;
 
 import lombok.experimental.UtilityClass;
 import ru.practicum.mainserver.categories.Category;
+import ru.practicum.mainserver.users.dto.CommentDto;
 import ru.practicum.mainserver.events.Event;
 import ru.practicum.mainserver.events.EventState;
 import ru.practicum.mainserver.events.dto.*;
 import ru.practicum.mainserver.users.User;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @UtilityClass
 public class EventMapper {
@@ -26,7 +28,7 @@ public class EventMapper {
         );
     }
 
-    public static EventFullDto toFullDto(Event event, long confirmedRequests, int views) {
+    public static EventFullDto toFullDto(Event event, long confirmedRequests, int views, List<CommentDto> comments) {
         return new EventFullDto(
                 event.getId(),
                 event.getTitle(),
@@ -43,7 +45,8 @@ public class EventMapper {
                 event.getState(),
                 CategoryMapper.toDto(event.getCategory()),
                 UserMapper.toShortDto(event.getInitiator()),
-                event.getLocation()
+                event.getLocation(),
+                comments
         );
     }
 
