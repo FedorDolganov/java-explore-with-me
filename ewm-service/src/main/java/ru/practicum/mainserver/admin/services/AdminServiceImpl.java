@@ -104,7 +104,14 @@ public class AdminServiceImpl implements AdminService {
 
         Map<Long, Integer> viewsCount = viewsClient.getViewsByList(ids);
         Map<Long, Long> requestsCount = requestRepository.getApprovedRequestsCount(ids);
-        List<Comment> comments = commentRepository.findCommensByEventsIds(ids);
+
+        List<Comment> comments;
+
+        if (ids.isEmpty()) {
+            comments = List.of();
+        } else {
+            comments = commentRepository.findCommensByEventsIds(ids);
+        }
 
         return events.stream()
                 .map(event ->  EventMapper.toFullDto(
