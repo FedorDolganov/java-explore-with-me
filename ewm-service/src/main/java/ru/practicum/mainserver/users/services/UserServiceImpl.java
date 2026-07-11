@@ -1,5 +1,6 @@
 package ru.practicum.mainserver.users.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,16 +19,13 @@ import ru.practicum.mainserver.exceptions.BadRequestException;
 import ru.practicum.mainserver.exceptions.ConflictException;
 import ru.practicum.mainserver.exceptions.ForbiddenException;
 import ru.practicum.mainserver.exceptions.NotFoundException;
+import ru.practicum.mainserver.mappers.CommentMapper;
 import ru.practicum.mainserver.mappers.EventMapper;
 import ru.practicum.mainserver.mappers.UpdateMapper;
 import ru.practicum.mainserver.mappers.UserMapper;
-import ru.practicum.mainserver.users.ParticipationRequest;
-import ru.practicum.mainserver.users.PendingRequestStatus;
-import ru.practicum.mainserver.users.UpdateEventRequestStatus;
-import ru.practicum.mainserver.users.User;
-import ru.practicum.mainserver.users.dto.EventRequestStatusUpdateRequest;
-import ru.practicum.mainserver.users.dto.EventRequestStatusUpdateResult;
-import ru.practicum.mainserver.users.dto.ParticipationRequestDto;
+import ru.practicum.mainserver.users.*;
+import ru.practicum.mainserver.users.dto.*;
+import ru.practicum.mainserver.users.repositories.CommentRepository;
 import ru.practicum.mainserver.users.repositories.ParticipationRequestRepository;
 import ru.practicum.mainserver.users.repositories.UserRepository;
 
@@ -37,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -54,6 +53,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private ParticipationRequestRepository requestRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
 
 
     @Override
@@ -102,12 +104,15 @@ public class UserServiceImpl implements UserService {
             throw new NotFoundException(String.format("User with id=%s not found.", userId));
         }
 
+        Event event = eventRepository.save(EventMapper.toEvent(eventDto, category.get(), user.get()));
+
         return EventMapper.toFullDto(
-                eventRepository.save(
-                        EventMapper.toEvent(eventDto, category.get(), user.get())
-                ),
+                event,
                 0,
-                0
+                0,
+                commentRepository.findCommensByEventId(event.getId()).stream()
+                        .map(CommentMapper::toDto)
+                        .toList()
         );
     }
 
@@ -128,7 +133,10 @@ public class UserServiceImpl implements UserService {
         return EventMapper.toFullDto(
                 event.get(),
                 requestRepository.countAllByEventIdAndStatus(eventId, PendingRequestStatus.CONFIRMED),
-                viewsClient.getViews(eventId)
+                viewsClient.getViews(eventId),
+                commentRepository.findCommensByEventId(eventId).stream()
+                        .map(CommentMapper::toDto)
+                        .toList()
         );
     }
 
@@ -180,7 +188,10 @@ public class UserServiceImpl implements UserService {
         return EventMapper.toFullDto(
                 finalEvent,
                 requestRepository.countAllByEventIdAndStatus(finalEvent.getId(), PendingRequestStatus.CONFIRMED),
-                viewsClient.getViews(finalEvent.getId())
+                viewsClient.getViews(finalEvent.getId()),
+                commentRepository.findCommensByEventId(eventId).stream()
+                        .map(CommentMapper::toDto)
+                        .toList()
         );
     }
 
@@ -257,9 +268,9 @@ public class UserServiceImpl implements UserService {
         if (eventRequest.getStatus() == UpdateEventRequestStatus.CONFIRMED) {
             for (int i = 0; i < Math.min(freeRequests, requests.size()); i++) {
                 confirmedRequests.add(requests.get(i));
-
-                cancelledRequests.remove(i);
             }
+
+            cancelledRequests.removeAll(confirmedRequests);
         }
 
         return new EventRequestStatusUpdateResult(
@@ -354,4 +365,109 @@ public class UserServiceImpl implements UserService {
 
         return UserMapper.toPRDto(requestRepository.save(request.get()));
     }
+
+    @Override
+    @Transactional
+    public CommentDto createComment(long userId, long eventId, NewCommentDto commentDto) {
+        Optional<User> user = userRepository.findById(userId);
+
+        if (user.isEmpty()) {
+            throw new NotFoundException(String.format("User with id=%s not found.", userId));
+        }
+
+        Optional<Event> event = eventRepository.findById(eventId);
+
+        if (event.isEmpty()) {
+            throw new NotFoundException(String.format("Event with id=%s not found.", eventId));
+        }
+
+        if (event.get().getInitiator().getId() == userId) {
+            throw new ConflictException("You cannot comment on your own event.");
+        }
+
+        if (requestRepository.getUserCountAprovedPartocipationToEvent(userId, eventId, PendingRequestStatus.CONFIRMED) <= 0) {
+            throw new ConflictException("You did not participate in this event and cannot leave a comment on it.");
+        }
+
+        if (commentRepository.userHasCommentsToThisEvent(userId, eventId)) {
+            throw new ConflictException("You have already left comments on this event");
+        }
+
+        return CommentMapper.toDto(
+                commentRepository.save(
+                        CommentMapper.to(commentDto, user.get(), event.get())
+                )
+        );
+    }
+
+    @Override
+    @Transactional
+    public CommentDto updateComment(long userId, long eventId, long comId, UpdateCommentDto commentDto) {
+        Optional<User> user = userRepository.findById(userId);
+
+        if (user.isEmpty()) {
+            throw new NotFoundException(String.format("User with id=%s not found.", userId));
+        }
+
+        Optional<Event> event = eventRepository.findById(eventId);
+
+        if (event.isEmpty()) {
+            throw new NotFoundException(String.format("Event with id=%s not found.", eventId));
+        }
+
+        Optional<Comment> comment = commentRepository.findById(comId);
+
+        if (comment.isEmpty()) {
+            throw new NotFoundException(String.format("Comment with id=%s not found.", comId));
+        }
+
+        if (comment.get().getEvent().getId() != eventId) {
+            throw new ConflictException(String.format("The comment id=%s does not belong to the event id=%s", comId, eventId));
+        }
+
+        if (comment.get().getAuthor().getId() != userId) {
+            throw new ConflictException(String.format("You are not the owner of the comment id=%s", comId));
+        }
+
+        comment.get().setText(commentDto.getText());
+
+        return CommentMapper.toDto(
+                commentRepository.save(
+                        comment.get()
+                )
+        );
+    }
+
+    @Override
+    @Transactional
+    public void deleteComment(long userId, long eventId, long comId) {
+        Optional<User> user = userRepository.findById(userId);
+
+        if (user.isEmpty()) {
+            throw new NotFoundException(String.format("User with id=%s not found.", userId));
+        }
+
+        Optional<Event> event = eventRepository.findById(eventId);
+
+        if (event.isEmpty()) {
+            throw new NotFoundException(String.format("Event with id=%s not found.", eventId));
+        }
+
+        Optional<Comment> comment = commentRepository.findById(comId);
+
+        if (comment.isEmpty()) {
+            throw new NotFoundException(String.format("Comment with id=%s not found.", comId));
+        }
+
+        if (comment.get().getEvent().getId() != eventId) {
+            throw new ConflictException(String.format("The comment id=%s does not belong to the event id=%s", comId, eventId));
+        }
+
+        if (comment.get().getAuthor().getId() != userId) {
+            throw new ConflictException(String.format("You are not the owner of the comment id=%s", comId));
+        }
+
+        commentRepository.deleteById(comId);
+    }
+
 }

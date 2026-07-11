@@ -12,8 +12,10 @@ import ru.practicum.mainserver.events.dto.EventShortDto;
 import ru.practicum.mainserver.events.repositories.EventRepository;
 import ru.practicum.mainserver.exceptions.BadRequestException;
 import ru.practicum.mainserver.exceptions.NotFoundException;
+import ru.practicum.mainserver.mappers.CommentMapper;
 import ru.practicum.mainserver.mappers.EventMapper;
 import ru.practicum.mainserver.users.PendingRequestStatus;
+import ru.practicum.mainserver.users.repositories.CommentRepository;
 import ru.practicum.mainserver.users.repositories.ParticipationRequestRepository;
 
 import java.time.LocalDateTime;
@@ -33,6 +35,10 @@ public class EventServiceImpl implements EventService {
 
     @Autowired
     private ParticipationRequestRepository requestRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
+
 
 
 
@@ -109,7 +115,10 @@ public class EventServiceImpl implements EventService {
         return EventMapper.toFullDto(
                 event.get(),
                 requestRepository.countAllByEventIdAndStatus(id, PendingRequestStatus.CONFIRMED),
-                viewsClient.getViews(id)
+                viewsClient.getViews(id),
+                commentRepository.findCommensByEventId(id).stream()
+                        .map(CommentMapper::toDto)
+                        .toList()
         );
     }
 }

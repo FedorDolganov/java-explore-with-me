@@ -23,6 +23,7 @@ import ru.practicum.mainserver.exceptions.ForbiddenException;
 import ru.practicum.mainserver.exceptions.NotFoundException;
 import ru.practicum.mainserver.users.*;
 import ru.practicum.mainserver.users.dto.*;
+import ru.practicum.mainserver.users.repositories.CommentRepository;
 import ru.practicum.mainserver.users.repositories.ParticipationRequestRepository;
 import ru.practicum.mainserver.users.repositories.UserRepository;
 import ru.practicum.mainserver.users.services.UserServiceImpl;
@@ -51,6 +52,9 @@ class UserServiceTest {
 
     @Mock
     private ParticipationRequestRepository requestRepository;
+
+    @Mock
+    private CommentRepository commentRepository;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -158,6 +162,7 @@ class UserServiceTest {
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(eventRepository.save(any(Event.class))).thenReturn(event);
+        when(commentRepository.findCommensByEventId(anyLong())).thenReturn(List.of());
 
         EventFullDto result = userService.createEvent(1L, newEventDto);
 
@@ -212,6 +217,7 @@ class UserServiceTest {
         when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
         when(requestRepository.countAllByEventIdAndStatus(anyLong(), any())).thenReturn(5);
         when(viewsClient.getViews(anyLong())).thenReturn(100);
+        when(commentRepository.findCommensByEventId(anyLong())).thenReturn(List.of());
 
         EventFullDto result = userService.getUserEvent(1L, 1L);
 
@@ -255,6 +261,7 @@ class UserServiceTest {
         when(eventRepository.save(any(Event.class))).thenReturn(event);
         when(requestRepository.countAllByEventIdAndStatus(anyLong(), any())).thenReturn(0);
         when(viewsClient.getViews(anyLong())).thenReturn(0);
+        when(commentRepository.findCommensByEventId(anyLong())).thenReturn(List.of());
 
         updateEventUserRequest.setStateAction(EventStateActionUser.CANCEL_REVIEW);
 
@@ -273,6 +280,7 @@ class UserServiceTest {
         when(eventRepository.save(any(Event.class))).thenReturn(event);
         when(requestRepository.countAllByEventIdAndStatus(anyLong(), any())).thenReturn(0);
         when(viewsClient.getViews(anyLong())).thenReturn(0);
+        when(commentRepository.findCommensByEventId(anyLong())).thenReturn(List.of());
 
         updateEventUserRequest.setStateAction(EventStateActionUser.SEND_TO_REVIEW);
 
@@ -291,6 +299,7 @@ class UserServiceTest {
         when(eventRepository.save(any(Event.class))).thenReturn(event);
         when(requestRepository.countAllByEventIdAndStatus(anyLong(), any())).thenReturn(0);
         when(viewsClient.getViews(anyLong())).thenReturn(0);
+        when(commentRepository.findCommensByEventId(anyLong())).thenReturn(List.of());
 
         updateEventUserRequest.setStateAction(null);
 
@@ -482,34 +491,34 @@ class UserServiceTest {
 
     @Test
     void updateUserEventRequests_WhenParticipantLimitIsZero_ShouldThrowConflictException() {
-        event.setState(EventState.PUBLISHED);
         event.setParticipantLimit(0);
-        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        event.setRequestModeration(true);
 
         EventRequestStatusUpdateRequest updateRequest = new EventRequestStatusUpdateRequest();
+        updateRequest.setRequestIds(List.of(1L));
 
-        ConflictException exception = assertThrows(
-                ConflictException.class,
-                () -> userService.updateUserEventRequests(1L, 1L, updateRequest)
-        );
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
 
-        assertTrue(exception.getMessage().contains("Request moderation is disabled"));
+        ConflictException exception = assertThrows(ConflictException.class,
+                () -> userService.updateUserEventRequests(1L, 1L, updateRequest));
+
+        assertTrue(exception.getMessage().contains("Request moderation is disabled or participant limit is 0"));
     }
 
     @Test
-    void updateUserEventRequests_WhenUserNotFound_ShouldThrowNotFoundException() {
-        event.setState(EventState.PUBLISHED);
-        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+    void updateUserEventRequests_WhenLimitIsZero_ShouldThrowConflictException() {
+        event.setParticipantLimit(0);
+        event.setRequestModeration(true);
 
         EventRequestStatusUpdateRequest updateRequest = new EventRequestStatusUpdateRequest();
+        updateRequest.setRequestIds(List.of(1L));
 
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
-                () -> userService.updateUserEventRequests(1L, 1L, updateRequest)
-        );
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
 
-        assertTrue(exception.getMessage().contains("User with id=1 not found."));
+        ConflictException exception = assertThrows(ConflictException.class,
+                () -> userService.updateUserEventRequests(1L, 1L, updateRequest));
+
+        assertTrue(exception.getMessage().contains("Request moderation is disabled or participant limit is 0"));
     }
 
     @Test
@@ -779,5 +788,378 @@ class UserServiceTest {
 
         assertTrue(exception.getMessage().contains("ParticipationRequest with id=99 not found."));
         verify(requestRepository, never()).save(any());
+    }
+
+    @Test
+    void createComment_WhenAllValid_ShouldCreateComment() {
+        NewCommentDto commentDto = new NewCommentDto();
+        commentDto.setText("Test comment");
+
+        Comment comment = new Comment();
+        comment.setId(1L);
+        comment.setText("Test comment");
+        comment.setAuthor(requester);
+        comment.setEvent(event);
+
+        when(userRepository.findById(2L)).thenReturn(Optional.of(requester));
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(requestRepository.getUserCountAprovedPartocipationToEvent(anyLong(), anyLong(), any())).thenReturn(1);
+        when(commentRepository.userHasCommentsToThisEvent(anyLong(), anyLong())).thenReturn(false);
+        when(commentRepository.save(any(Comment.class))).thenReturn(comment);
+
+        CommentDto result = userService.createComment(2L, 1L, commentDto);
+
+        assertNotNull(result);
+        verify(commentRepository, times(1)).save(any(Comment.class));
+    }
+
+    @Test
+    void createComment_WhenUserNotFound_ShouldThrowNotFoundException() {
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class,
+                () -> userService.createComment(99L, 1L, new NewCommentDto()));
+    }
+
+    @Test
+    void createComment_WhenEventNotFound_ShouldThrowNotFoundException() {
+        when(userRepository.findById(2L)).thenReturn(Optional.of(requester));
+        when(eventRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class,
+                () -> userService.createComment(2L, 99L, new NewCommentDto()));
+    }
+
+    @Test
+    void createComment_WhenUserIsInitiator_ShouldThrowConflictException() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+
+        ConflictException exception = assertThrows(ConflictException.class,
+                () -> userService.createComment(1L, 1L, new NewCommentDto()));
+
+        assertTrue(exception.getMessage().contains("You cannot comment on your own event"));
+    }
+
+    @Test
+    void createComment_WhenNotParticipated_ShouldThrowConflictException() {
+        when(userRepository.findById(2L)).thenReturn(Optional.of(requester));
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(requestRepository.getUserCountAprovedPartocipationToEvent(anyLong(), anyLong(), any())).thenReturn(0);
+
+        ConflictException exception = assertThrows(ConflictException.class,
+                () -> userService.createComment(2L, 1L, new NewCommentDto()));
+
+        assertTrue(exception.getMessage().contains("You did not participate in this event"));
+    }
+
+    @Test
+    void createComment_WhenAlreadyCommented_ShouldThrowConflictException() {
+        NewCommentDto commentDto = new NewCommentDto();
+        commentDto.setText("Test comment");
+
+        when(userRepository.findById(2L)).thenReturn(Optional.of(requester));
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(requestRepository.getUserCountAprovedPartocipationToEvent(anyLong(), anyLong(), any())).thenReturn(1);
+        when(commentRepository.userHasCommentsToThisEvent(anyLong(), anyLong())).thenReturn(true);
+
+        ConflictException exception = assertThrows(ConflictException.class,
+                () -> userService.createComment(2L, 1L, commentDto));
+
+        assertTrue(exception.getMessage().contains("You have already left comments on this event"));
+    }
+
+    @Test
+    void updateComment_WhenAllValid_ShouldUpdateComment() {
+        UpdateCommentDto updateDto = new UpdateCommentDto();
+        updateDto.setText("Updated comment");
+
+        Comment comment = new Comment();
+        comment.setId(1L);
+        comment.setEvent(event);
+        comment.setAuthor(requester);
+        comment.setText("Old comment");
+
+        when(userRepository.findById(2L)).thenReturn(Optional.of(requester));
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
+        when(commentRepository.save(any(Comment.class))).thenReturn(comment);
+
+        CommentDto result = userService.updateComment(2L, 1L, 1L, updateDto);
+
+        assertNotNull(result);
+        verify(commentRepository, times(1)).save(any(Comment.class));
+    }
+
+    @Test
+    void updateComment_WhenUserNotFound_ShouldThrowNotFoundException() {
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class,
+                () -> userService.updateComment(99L, 1L, 1L, new UpdateCommentDto()));
+    }
+
+    @Test
+    void updateComment_WhenEventNotFound_ShouldThrowNotFoundException() {
+        when(userRepository.findById(2L)).thenReturn(Optional.of(requester));
+        when(eventRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class,
+                () -> userService.updateComment(2L, 99L, 1L, new UpdateCommentDto()));
+    }
+
+    @Test
+    void updateComment_WhenCommentNotFound_ShouldThrowNotFoundException() {
+        when(userRepository.findById(2L)).thenReturn(Optional.of(requester));
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(commentRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class,
+                () -> userService.updateComment(2L, 1L, 99L, new UpdateCommentDto()));
+    }
+
+    @Test
+    void updateComment_WhenCommentNotBelongToEvent_ShouldThrowConflictException() {
+        Event otherEvent = new Event();
+        otherEvent.setId(2L);
+
+        Comment comment = new Comment();
+        comment.setId(1L);
+        comment.setEvent(otherEvent);
+        comment.setAuthor(requester);
+
+        when(userRepository.findById(2L)).thenReturn(Optional.of(requester));
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
+
+        ConflictException exception = assertThrows(ConflictException.class,
+                () -> userService.updateComment(2L, 1L, 1L, new UpdateCommentDto()));
+
+        assertTrue(exception.getMessage().contains("does not belong to the event"));
+    }
+
+    @Test
+    void updateComment_WhenNotOwner_ShouldThrowConflictException() {
+        User otherUser = new User();
+        otherUser.setId(3L);
+
+        Comment comment = new Comment();
+        comment.setId(1L);
+        comment.setEvent(event);
+        comment.setAuthor(otherUser);
+
+        when(userRepository.findById(2L)).thenReturn(Optional.of(requester));
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
+
+        ConflictException exception = assertThrows(ConflictException.class,
+                () -> userService.updateComment(2L, 1L, 1L, new UpdateCommentDto()));
+
+        assertTrue(exception.getMessage().contains("You are not the owner"));
+    }
+
+    @Test
+    void deleteComment_WhenAllValid_ShouldDeleteComment() {
+        Comment comment = new Comment();
+        comment.setId(1L);
+        comment.setEvent(event);
+        comment.setAuthor(requester);
+
+        when(userRepository.findById(2L)).thenReturn(Optional.of(requester));
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
+
+        userService.deleteComment(2L, 1L, 1L);
+
+        verify(commentRepository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    void deleteComment_WhenUserNotFound_ShouldThrowNotFoundException() {
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class,
+                () -> userService.deleteComment(99L, 1L, 1L));
+    }
+
+    @Test
+    void deleteComment_WhenEventNotFound_ShouldThrowNotFoundException() {
+        when(userRepository.findById(2L)).thenReturn(Optional.of(requester));
+        when(eventRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class,
+                () -> userService.deleteComment(2L, 99L, 1L));
+    }
+
+    @Test
+    void deleteComment_WhenCommentNotFound_ShouldThrowNotFoundException() {
+        when(userRepository.findById(2L)).thenReturn(Optional.of(requester));
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(commentRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class,
+                () -> userService.deleteComment(2L, 1L, 99L));
+    }
+
+    @Test
+    void deleteComment_WhenCommentNotBelongToEvent_ShouldThrowConflictException() {
+        Event otherEvent = new Event();
+        otherEvent.setId(2L);
+
+        Comment comment = new Comment();
+        comment.setId(1L);
+        comment.setEvent(otherEvent);
+        comment.setAuthor(requester);
+
+        when(userRepository.findById(2L)).thenReturn(Optional.of(requester));
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
+
+        ConflictException exception = assertThrows(ConflictException.class,
+                () -> userService.deleteComment(2L, 1L, 1L));
+
+        assertTrue(exception.getMessage().contains("does not belong to the event"));
+    }
+
+    @Test
+    void deleteComment_WhenNotOwner_ShouldThrowConflictException() {
+        User otherUser = new User();
+        otherUser.setId(3L);
+
+        Comment comment = new Comment();
+        comment.setId(1L);
+        comment.setEvent(event);
+        comment.setAuthor(otherUser);
+
+        when(userRepository.findById(2L)).thenReturn(Optional.of(requester));
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
+
+        ConflictException exception = assertThrows(ConflictException.class,
+                () -> userService.deleteComment(2L, 1L, 1L));
+
+        assertTrue(exception.getMessage().contains("You are not the owner"));
+    }
+
+    @Test
+    void updateUserEvent_WhenEventDateIsNull_ShouldNotValidateDate() {
+        event.setState(EventState.PENDING);
+        updateEventUserRequest.setEventDate(null);
+
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(eventRepository.save(any(Event.class))).thenReturn(event);
+        when(requestRepository.countAllByEventIdAndStatus(anyLong(), any())).thenReturn(0);
+        when(viewsClient.getViews(anyLong())).thenReturn(0);
+
+        EventFullDto result = userService.updateUserEvent(1L, 1L, updateEventUserRequest);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    void updateUserEvent_WhenCategoryIsZero_ShouldNotCheckCategory() {
+        event.setState(EventState.PENDING);
+        updateEventUserRequest.setCategory(0);
+
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(categoryRepository.findById(0L)).thenReturn(Optional.empty());
+        when(eventRepository.save(any(Event.class))).thenReturn(event);
+        when(requestRepository.countAllByEventIdAndStatus(anyLong(), any())).thenReturn(0);
+        when(viewsClient.getViews(anyLong())).thenReturn(0);
+
+        EventFullDto result = userService.updateUserEvent(1L, 1L, updateEventUserRequest);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    void createUserEventRequest_WhenRequestModerationFalse_ShouldAutoConfirm() {
+        event.setRequestModeration(false);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(requester));
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(requestRepository.findAllByUserIdAndEventId(anyLong(), anyLong())).thenReturn(Optional.empty());
+        when(requestRepository.countAllByEventIdAndStatus(anyLong(), any())).thenReturn(5);
+        when(requestRepository.save(any(ParticipationRequest.class))).thenAnswer(invocation -> {
+            ParticipationRequest pr = invocation.getArgument(0);
+            pr.setStatus(PendingRequestStatus.CONFIRMED);
+            return pr;
+        });
+
+        ParticipationRequestDto result = userService.createUserEventRequest(2L, 1L);
+
+        assertNotNull(result);
+        verify(requestRepository, times(1)).save(any(ParticipationRequest.class));
+    }
+
+    @Test
+    void updateUserEvent_WhenEventDateValid_ShouldUpdateEvent() {
+        event.setState(EventState.PENDING);
+        updateEventUserRequest.setEventDate(LocalDateTime.now().plusDays(5));
+
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(eventRepository.save(any(Event.class))).thenReturn(event);
+        lenient().when(requestRepository.countAllByEventIdAndStatus(anyLong(), any())).thenReturn(0);
+        lenient().when(viewsClient.getViews(anyLong())).thenReturn(0);
+
+        EventFullDto result = userService.updateUserEvent(1L, 1L, updateEventUserRequest);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    void updateUserEvent_WhenEventDateBeforeTwoHours_ShouldThrowBadRequestException() {
+        event.setState(EventState.PENDING);
+        updateEventUserRequest.setEventDate(LocalDateTime.now().plusHours(1));
+
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> userService.updateUserEvent(1L, 1L, updateEventUserRequest));
+
+        assertTrue(exception.getMessage().contains("Field: eventDate"));
+    }
+
+    @Test
+    void updateUserEventRequests_WhenUserNotFound_ShouldThrowNotFoundException() {
+        event.setState(EventState.PUBLISHED);
+        event.setParticipantLimit(10);
+        event.setRequestModeration(true);
+
+        EventRequestStatusUpdateRequest updateRequest = new EventRequestStatusUpdateRequest();
+        updateRequest.setRequestIds(List.of(1L));
+
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> userService.updateUserEventRequests(1L, 1L, updateRequest));
+
+        assertTrue(exception.getMessage().contains("User with id=1 not found"));
+    }
+
+    @Test
+    void updateUserEventRequests_WhenLimitNotZeroAndFreeRequestsAvailable_ShouldConfirm() {
+        event.setState(EventState.PUBLISHED);
+        event.setParticipantLimit(10);
+        event.setRequestModeration(true);
+
+        EventRequestStatusUpdateRequest updateRequest = new EventRequestStatusUpdateRequest();
+        updateRequest.setRequestIds(List.of(1L));
+        updateRequest.setStatus(UpdateEventRequestStatus.CONFIRMED);
+
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(requestRepository.findAllById(anyList())).thenReturn(List.of(request));
+        when(requestRepository.countAllByEventIdAndStatus(anyLong(), any())).thenReturn(5);
+        when(requestRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        EventRequestStatusUpdateResult result = userService.updateUserEventRequests(1L, 1L, updateRequest);
+
+        assertNotNull(result);
     }
 }

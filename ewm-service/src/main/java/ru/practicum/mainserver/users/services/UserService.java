@@ -1,20 +1,17 @@
 package ru.practicum.mainserver.users.services;
 
-import jakarta.validation.Valid;
 import ru.practicum.mainserver.events.dto.EventFullDto;
 import ru.practicum.mainserver.events.dto.EventShortDto;
 import ru.practicum.mainserver.events.dto.NewEventDto;
 import ru.practicum.mainserver.events.dto.UpdateEventUserRequest;
-import ru.practicum.mainserver.users.dto.EventRequestStatusUpdateRequest;
-import ru.practicum.mainserver.users.dto.EventRequestStatusUpdateResult;
-import ru.practicum.mainserver.users.dto.ParticipationRequestDto;
+import ru.practicum.mainserver.users.dto.*;
 
 import java.util.List;
 
 public interface UserService {
     List<EventShortDto> getUserEvents(long userId, Integer from, Integer size);
 
-    EventFullDto createEvent(long userId, @Valid NewEventDto eventDto);
+    EventFullDto createEvent(long userId, NewEventDto eventDto);
 
     EventFullDto getUserEvent(long userId, long eventId);
 
@@ -29,4 +26,10 @@ public interface UserService {
     ParticipationRequestDto createUserEventRequest(long userId, long eventId);
 
     ParticipationRequestDto cancelUserRequest(long userId, long requestId);
+
+    CommentDto createComment(long userId, long eventId, NewCommentDto commentDto);
+
+    CommentDto updateComment(long userId, long eventId, long comId, UpdateCommentDto commentDto);
+
+    void deleteComment(long userId, long eventId, long comId);
 }

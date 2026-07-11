@@ -41,6 +41,13 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
             "and pr.event.id = ?2")
     Optional<ParticipationRequest> findAllByUserIdAndEventId(long userId, long eventId);
 
+    @Query("select count(pr) " +
+            "from ParticipationRequest pr " +
+            "where pr.requester.id = ?1 " +
+            "and pr.event.id = ?2 " +
+            "AND pr.status = ?3")
+    int getUserCountAprovedPartocipationToEvent(long userId, long eventId, PendingRequestStatus status);
+
 
     default Map<Long, Long> getApprovedRequestsCount(List<Long> eventIds) {
         return findApprovedByEventIds(eventIds, PendingRequestStatus.CONFIRMED)

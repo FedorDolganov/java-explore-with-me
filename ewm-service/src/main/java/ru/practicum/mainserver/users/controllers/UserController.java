@@ -7,13 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.mainserver.users.dto.CommentDto;
+import ru.practicum.mainserver.users.dto.NewCommentDto;
 import ru.practicum.mainserver.events.dto.EventFullDto;
 import ru.practicum.mainserver.events.dto.EventShortDto;
 import ru.practicum.mainserver.events.dto.NewEventDto;
 import ru.practicum.mainserver.events.dto.UpdateEventUserRequest;
-import ru.practicum.mainserver.users.dto.EventRequestStatusUpdateRequest;
-import ru.practicum.mainserver.users.dto.EventRequestStatusUpdateResult;
-import ru.practicum.mainserver.users.dto.ParticipationRequestDto;
+import ru.practicum.mainserver.users.dto.*;
 import ru.practicum.mainserver.users.services.UserService;
 
 import java.util.List;
@@ -86,6 +86,30 @@ public class UserController {
     public ParticipationRequestDto cancelUserRequest(@Positive @PathVariable long userId,
                                                      @Positive @PathVariable long requestId) {
         return userService.cancelUserRequest(userId, requestId);
+    }
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/{userId}/event/{eventId}/comment")
+    public CommentDto createComment(@Positive @PathVariable long userId,
+                                    @Positive @PathVariable long eventId,
+                                    @Valid @RequestBody NewCommentDto commentDto) {
+        return userService.createComment(userId, eventId, commentDto);
+    }
+
+    @PatchMapping("/{userId}/event/{eventId}/comment/{comId}")
+    public CommentDto updateComment(@Positive @PathVariable long userId,
+                              @Positive @PathVariable long eventId,
+                              @Positive @PathVariable long comId,
+                              @Valid @RequestBody UpdateCommentDto commentDto) {
+        return userService.updateComment(userId, eventId, comId, commentDto);
+    }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{userId}/event/{eventId}/comment/{comId}")
+    public void deleteComment(@Positive @PathVariable long userId,
+                              @Positive @PathVariable long eventId,
+                              @Positive @PathVariable long comId) {
+        userService.deleteComment(userId, eventId, comId);
     }
 
 }

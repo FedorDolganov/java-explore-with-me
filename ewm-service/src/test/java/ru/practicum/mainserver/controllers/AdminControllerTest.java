@@ -20,9 +20,7 @@ import ru.practicum.mainserver.events.EventStateAction;
 import ru.practicum.mainserver.events.dto.EventFullDto;
 import ru.practicum.mainserver.events.dto.Location;
 import ru.practicum.mainserver.events.dto.UpdateEventAdminRequest;
-import ru.practicum.mainserver.users.dto.NewUserRequest;
-import ru.practicum.mainserver.users.dto.UserDto;
-import ru.practicum.mainserver.users.dto.UserShortDto;
+import ru.practicum.mainserver.users.dto.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -105,7 +103,8 @@ class AdminControllerTest {
                         EventState.PUBLISHED,
                         new CategoryDto(),
                         new UserShortDto(),
-                        new Location()
+                        new Location(),
+                        List.of()
                         )
                 )
         );
@@ -145,7 +144,8 @@ class AdminControllerTest {
                 EventState.PUBLISHED,
                 new CategoryDto(),
                 new UserShortDto(),
-                new Location()
+                new Location(),
+                List.of()
         ));
 
         UpdateEventAdminRequest request = new UpdateEventAdminRequest();
@@ -276,4 +276,37 @@ class AdminControllerTest {
 
         verify(adminService, times(1)).updateCompilation(eq(1L), any(UpdateCompilationRequest.class));
     }
+
+    @Test
+    void updateComment_ShouldReturnOk() throws Exception {
+        UpdateCommentDto updateDto = new UpdateCommentDto();
+        updateDto.setText("Updated comment");
+
+        when(adminService.updateComments(anyLong(), any(UpdateCommentDto.class)))
+                .thenReturn(new CommentDto());
+
+        mockMvc.perform(patch("/admin/comments/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void deleteComment_ShouldReturnNoContent() throws Exception {
+        mockMvc.perform(delete("/admin/comments/1"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void getComments_ShouldReturnOk() throws Exception {
+        when(adminService.getComments(any(String[].class), anyInt(), anyInt()))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/admin/comments")
+                        .param("ids", "1,2")
+                        .param("from", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk());
+    }
+
 }

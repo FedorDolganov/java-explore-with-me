@@ -72,6 +72,8 @@
                         <exclude>ru/practicum/mainserver/mappers/ApiError.*</exclude>
                         <exclude>ru/practicum/mainserver/client/BaseClient.*</exclude>
                         <exclude>ru/practicum/mainserver/client/ViewsClient.*</exclude>
+                        <exclude>ru/practicum/mainserver/mappers/*</exclude>
+                        <exclude>ru/practicum/mainserver/users/repositories/*</exclude>
                     </excludes>
                 </configuration>
             </plugin>

@@ -14,9 +14,7 @@ import ru.practicum.mainserver.events.dto.*;
 import ru.practicum.mainserver.users.PendingRequestStatus;
 import ru.practicum.mainserver.users.UpdateEventRequestStatus;
 import ru.practicum.mainserver.users.controllers.UserController;
-import ru.practicum.mainserver.users.dto.EventRequestStatusUpdateRequest;
-import ru.practicum.mainserver.users.dto.EventRequestStatusUpdateResult;
-import ru.practicum.mainserver.users.dto.ParticipationRequestDto;
+import ru.practicum.mainserver.users.dto.*;
 import ru.practicum.mainserver.users.services.UserService;
 
 import java.time.LocalDateTime;
@@ -240,6 +238,40 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.status").value("CANCELED"));
 
         verify(userService, times(1)).cancelUserRequest(eq(1L), eq(1L));
+    }
+
+    @Test
+    void createComment_ShouldReturnCreated() throws Exception {
+        NewCommentDto commentDto = new NewCommentDto();
+        commentDto.setText("Test comment");
+
+        when(userService.createComment(anyLong(), anyLong(), any(NewCommentDto.class)))
+                .thenReturn(new CommentDto());
+
+        mockMvc.perform(post("/users/1/event/1/comment")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(commentDto)))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void updateComment_ShouldReturnOk() throws Exception {
+        UpdateCommentDto updateDto = new UpdateCommentDto();
+        updateDto.setText("Updated comment");
+
+        when(userService.updateComment(anyLong(), anyLong(), anyLong(), any(UpdateCommentDto.class)))
+                .thenReturn(new CommentDto());
+
+        mockMvc.perform(patch("/users/1/event/1/comment/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void deleteComment_ShouldReturnNoContent() throws Exception {
+        mockMvc.perform(delete("/users/1/event/1/comment/1"))
+                .andExpect(status().isNoContent());
     }
 
 }
