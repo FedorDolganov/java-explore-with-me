@@ -1120,7 +1120,6 @@
                   "    const api = new API(pm);\r",
                   "    const rnd = new RandomUtils();\r",
                   "\r",
-                  "\r",
                   "    let comment;\r",
                   "    try {\r",
                   "        const user = await api.addUser(rnd.getUser());\r",
@@ -1221,6 +1220,8 @@
         "packages": {},
         "requests": {},
         "exec": [
+          "pm.collectionVariables.set(\"baseUrl\", \"http://localhost:8080\");\r",
+          "\r",
           "API = class {\r",
           "    constructor(postman, verbose = false, baseUrl = \"http://localhost:8080\") {\r",
           "        this.baseUrl = baseUrl;\r",
