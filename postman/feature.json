@@ -1120,6 +1120,7 @@
                   "    const api = new API(pm);\r",
                   "    const rnd = new RandomUtils();\r",
                   "\r",
+                  "\r",
                   "    let comment;\r",
                   "    try {\r",
                   "        const user = await api.addUser(rnd.getUser());\r",
